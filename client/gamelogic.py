@@ -1,6 +1,7 @@
 import random
 import asyncio
 import websockets
+from itertools import combinations
 
 class Tiles:
     def __init__(self, type, value):
@@ -10,6 +11,12 @@ class Tiles:
 
     def get_type(self):
         return self.type
+
+    def get_value(self):
+        return self.value
+    
+    def get_cal_value(self):
+        return self.cal_value
 
 class Suited(Tiles):
     pass
@@ -23,12 +30,12 @@ class Bonus:
 
     def get_value(self):
         return self.value
-
+    
+#NOT FINISHED
 class Deck:
     def __init__(self, hands):
-        self.deck_tiles = hands
+        self.deck_tiles = hands #an array of instances of Tiles
         self.showed_tiles = []
-        self.winning_tiles = []
 
     def get_deck_tiles(self):
         return self.deck_tiles
@@ -39,14 +46,41 @@ class Deck:
     def get_winning_tiles(self):
         return self.winning_tiles
     
-    def change_winning_tiles(self, tiles):
-        self.winning_tiles = tiles
-
-    def set_deck_tiles(self, tiles):
-        self.deck_tiles = tiles
-
     def set_showed_tiles(self, tiles):
         self.showed_tiles = tiles
+    
+    def draw_tile(self, tile):
+        self.deck_tiles.append(tile)
+
+    def discard_tile(self, tile):
+        self.deck_tiles.remove(tile)
+    
+    def determine_winning_deck(self):
+        dot = []
+        bamboo = []
+        char = []
+        wind = []
+        dragon = []
+        all_tiles = [dot, bamboo, char, wind, dragon]
+        for tile in self.deck_tiles: #make the deck into groups according to their type
+            if tile.get_value() == 0:
+                dot.append(tile)
+            elif tile.get_value() == 9:
+                bamboo.append(tile)
+            elif tile.get_value() == 18:
+                char.append(tile)
+            elif tile.get_value() == 27:
+                wind.append(tile)
+            elif tile.get_value() == 31:
+                dragon.append(tile)
+        
+        for dot_combo in combinations(): 
+            
+
+                
+
+
+
 
 class Player:
     def __init__(self,connection,name):
@@ -61,7 +95,7 @@ class Player:
         return self.connection
 
     def get_deck(self):
-        return self.deck
+        return self.deck.get_deck_tiles()
 
     def set_deck(self, deck):
         self.deck=deck
@@ -125,7 +159,7 @@ class Game:
 
     def display_tiles(self, player):
         #display deck for the player stated
-        for i in self.player:
+        for i in self.players:
             if i == player:
                 deck = i.get_deck()
                 return deck
