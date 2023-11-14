@@ -1,7 +1,8 @@
 import random
 import asyncio
 import websockets
-from itertools import combinations
+from itertools import combinations, chain
+from collections import Counter
 
 class Tiles:
     def __init__(self, type, value):
@@ -61,25 +62,50 @@ class Deck:
         char = []
         wind = []
         dragon = []
-        all_tiles = [dot, bamboo, char, wind, dragon]
+        all = [dot, bamboo, char, wind, dragon]
+        set_of_three = []
+        comb_of_three = []
+        winning_deck_comb =[]
         for tile in self.deck_tiles: #make the deck into groups according to their type
-            if tile.get_value() == 0:
+            if tile.get_type() == 0:
                 dot.append(tile)
-            elif tile.get_value() == 9:
+            elif tile.get_type() == 9:
                 bamboo.append(tile)
-            elif tile.get_value() == 18:
+            elif tile.get_type() == 18:
                 char.append(tile)
-            elif tile.get_value() == 27:
+            elif tile.get_type() == 27:
                 wind.append(tile)
-            elif tile.get_value() == 31:
+            elif tile.get_type() == 31:
                 dragon.append(tile)
         
-        for dot_combo in combinations(): 
-            
-
-                
-
-
+        for group in all:
+            if len(group)<3:
+                set_of_three.append(group)
+        #cal_value
+        for group in set_of_three:
+  
+            for comb in combinations(group, 3):
+                comb = sorted(comb, key=lambda x: x.get_value())
+                values = [obj.get_value() for obj in comb]
+                pung = all(elem.get_value() == comb.get_value() for elem in comb)
+                chow = (values == list(range(values[0], values[-1] + 1)))
+                if pung or chow:
+                    comb_of_three.append(comb)
+        
+        if len(comb_of_three) < 4:
+            return []
+        else:
+            for full_comb in combinations(comb_of_three, 4):
+                joined = list(chain.from_iterable(full_comb))
+                counter_array1 = Counter(self.deck_tiles)
+                counter_array2 = Counter(joined)
+                if all(count <= counter_array1[key] for key, count in counter_array2.items()):
+                    pair  = [elem for elem in self.deck_tiles if elem not in joined]
+                    if pair[0] == pair[1] and len(pair)==2:
+                        temp = list(full_comb)
+                        temp.append(pair)
+                        winning_deck_comb.append(temp)
+            return winning_deck_comb
 
 
 class Player:
@@ -164,6 +190,7 @@ class Game:
                 deck = i.get_deck()
                 return deck
     
+test = [Tiles(0,0),Tiles(0,0),Tiles(0,0),Tiles(0,1),Tiles(0,2),Tiles(0,3),Tiles(0,4),Tiles(0,5),Tiles(0,6),Tiles(31,0)]
 
         
         
