@@ -1,17 +1,29 @@
 class Player:
-    def __init__(self,connection,name):
+    def __init__(self,name):
         self.name=name
-        self.deck=[]
-        self.connection=connection
+        self.deck=None
+        self.win = False
+        #self.connection=connection
 
     def get_name(self):
         return self.name
     
-    def get_connection(self):
-        return self.connection
-
     def get_deck(self):
+        return self.deck
+    
+    def get_win(self):
+        return self.win
+    
+    def set_win(self):
+        self.win = True
+    '''def get_connection(self):
+        return self.connection'''
+
+    def get_deck_tiles(self):
         return self.deck.get_deck_tiles()
+    
+    def get_showed(self):
+        return self.deck.get_showed_tiles()
 
     def set_deck(self, deck):
         self.deck=deck
