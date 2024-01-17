@@ -100,6 +100,7 @@ class Game:
         print(f"deck: {tilesToNum(deck)}, showed: {tilesToNum(showed)}")
 
     def round(self, player_num): #need to return next player_num
+        #check if can win or not
         #discard
         player = self.get_players()[player_num]
         player_deck  = player.get_deck()

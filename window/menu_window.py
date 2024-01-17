@@ -1,6 +1,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
+
 def on_click_play():
     """Open the second window when the button is clicked."""
     second_window = tk.Toplevel(root)
