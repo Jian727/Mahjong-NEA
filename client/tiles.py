@@ -1,3 +1,11 @@
+'''
+dots = 0-8
+bamboo = 9-17
+char = 18-26
+winds = 27-30
+dragons = 31-33
+'''
+
 class Tiles:
     def __init__(self, type, value):
         self.type = type
@@ -19,10 +27,3 @@ class Suited(Tiles):
 class Honor(Tiles):
     pass
 
-class Bonus:
-    def __init__(self, value):
-        self.value = value
-
-    def get_value(self):
-        return self.value
-    
