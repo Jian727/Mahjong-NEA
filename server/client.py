@@ -1,6 +1,6 @@
 import tkinter as tk
+from tkinter import *
 from PIL import Image, ImageTk
-from tkinter import messagebox
 from network import Network
 import random
 
@@ -37,6 +37,27 @@ class joiningPage(tk.Frame):
         self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
+
+        self.name_var=tk.StringVar()
+        self.canvas.create_text(windowDims[0]//2-200,  windowDims[1]//2-200, text="Please enter your name:", font="calibri 30", fill="white")
+        e1 = Entry(self.canvas, textvariable = self.name_var, font=('calibri 24'))
+        self.canvas.create_window(windowDims[0]//2+200, windowDims[1]//2-200, width = 400, height =40, window=e1)
+
+        self.button_join = tk.Button(self, text="Join Room", font=("calibri", 30), command=joinToRoom)
+        self.button_join.place(x=windowDims[0]//2-120, y=windowDims[1]//2-25, width=240, height=50)
+
+class RoomPage(tk.Frame):
+    def __init__(self, master, roomToGame):
+        super().__init__(master, width=windowDims[0], height=windowDims[1])
+
+        self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
+        self.canvas.pack()
+
+        self.image = Image.open("window/main_background.png")
+        self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
+        self.photo = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
+
 
 
 class MahjongGamePage(tk.Frame):
@@ -76,14 +97,21 @@ def main():
         global joining_page
         global n
         welcome_page.destroy()
-        joining_page = joiningPage(root, joinToRoom).pack()
+        joining_page = joiningPage(root, joinToRoom)
+        joining_page.pack()
         n = Network()
         startId = n.getId()
-        n.send("hello")
         n.send(startId)
 
     def joinToRoom():
+        global joining_page
+        global n
+        name = joining_page.name_var.get()
+        n.send(name)
         joining_page.destroy()
+
+    def roomToGame():
+        pass
 
         
     
