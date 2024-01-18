@@ -2,35 +2,41 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import messagebox
 from network import Network
+import random
+
+windowDims = (960, 540)
 
 class WelcomePage(tk.Frame):
-    def __init__(self, master, on_connect, on_quit):
-        super().__init__(master, bg="lightblue", width=960, height=540)  # Set background and dimensions
-        self.on_connect = on_connect
-        self.windowDims = (960, 540)
+    def __init__(self, master, welcomeToJoin, quit):
+        super().__init__(master, width=windowDims[0], height=windowDims[1])  # Set background and dimensions
 
-        self.canvas = tk.Canvas(self, width=self.windowDims[0], height=self.windowDims[1], highlightthickness=0)
+        self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
         self.canvas.pack()
 
         self.image = Image.open("window/background_img.png")
-        self.image = self.image.resize((self.windowDims[0], self.windowDims[1]), Image.ANTIALIAS)
+        self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(self.image)
-        self.canvas.create_image(self.windowDims[0]//2, self.windowDims[1]//2, image=self.photo)
+        self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
 
-        self.canvas.create_text(self.windowDims[0]//2,  self.windowDims[1]//2-100, text="Mahjong!", font="calibri 60 bold", fill="white")
+        self.canvas.create_text(windowDims[0]//2,  windowDims[1]//2-100, text="Mahjong!", font="calibri 60 bold", fill="white")
 
-        self.button_play = tk.Button(self, text="Play", font=("calibri", 30), command=self.on_click_play)
-        self.button_play.place(x=self.windowDims[0]//2-75, y=self.windowDims[1]//2-25, width=150, height=50)
+        self.button_play = tk.Button(self, text="Play", font=("calibri", 30), command=welcomeToJoin)
+        self.button_play.place(x=windowDims[0]//2-75, y=windowDims[1]//2-25, width=150, height=50)
 
-        self.button_quit = tk.Button(self, text="Quit", font=("calibri", 30), command=on_quit)
-        self.button_quit.place(x=self.windowDims[0]//2-75, y=self.windowDims[1]//2+50, width=150, height=50)
+        self.button_quit = tk.Button(self, text="Quit", font=("calibri", 30), command=quit)
+        self.button_quit.place(x=windowDims[0]//2-75, y=windowDims[1]//2+50, width=150, height=50)
 
+class joiningPage(tk.Frame):
+    def __init__(self, master, joinToRoom):
+        super().__init__(master, width=windowDims[0], height=windowDims[1])
 
-    def on_click_play(self):
-        # Implement your server connection logic here
-        # For simplicity, let's assume the connection is successful
-        messagebox.showinfo("Connection", "Connected to the server successfully!")
-        self.on_connect()
+        self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
+        self.canvas.pack()
+
+        self.image = Image.open("window/main_background.png")
+        self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
+        self.photo = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
 
 
 class MahjongGamePage(tk.Frame):
@@ -65,28 +71,36 @@ class MahjongGamePage(tk.Frame):
         print(f"Clicked tile at index {index}")
 
 def main():
-    def on_connect():
+    def welcomeToJoin():
         # Destroy the welcome page and show the game page after connecting
+        global joining_page
+        global n
         welcome_page.destroy()
-        MahjongGamePage(root).pack()
+        joining_page = joiningPage(root, joinToRoom).pack()
+        n = Network()
+        startId = n.getId()
+        n.send("hello")
+        n.send(startId)
+
+    def joinToRoom():
+        joining_page.destroy()
+
+        
     
-    def on_quit():
+    def quit():
         root.quit()
 
     root = tk.Tk()
     root.title("Mahjong Game")
 
     # Create and show the welcome page initially
-    welcome_page = WelcomePage(root, on_connect, on_quit)
+    welcome_page = WelcomePage(root, welcomeToJoin, quit)
     welcome_page.pack()
 
 
 
     run = True
-    n = Network()
-    startId = n.getId()
-    n.send("hello")
-    n.send(startId)
+    
     while run:
         root.mainloop()
 

@@ -2,7 +2,7 @@ import socket
 from _thread import *
 import sys
 
-server = "192.168.1.125"
+server = socket.gethostbyname(socket.gethostname())
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,7 +26,7 @@ def threaded_client(conn, player):
                 print("disconnected")
                 break
             else:
-                if player == 1:
+                if player == 0:
                     reply = "hi player 1"
                 else:
                     reply = "hi player 2"
