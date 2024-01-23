@@ -1,9 +1,11 @@
 class Player:
-    def __init__(self,name):
-        self.name=name
-        self.deck=None
+    def __init__(self):
+        self.name = ""
+        self.deck = None
         self.win = False
-        #self.connection=connection
+
+    def set_name(self, n_name):
+        self.name = n_name
 
     def get_name(self):
         return self.name
@@ -16,8 +18,9 @@ class Player:
     
     def set_win(self):
         self.win = True
-    '''def get_connection(self):
-        return self.connection'''
+
+    def get_connection(self):
+        return self.connection
 
     def get_deck_tiles(self):
         return self.deck.get_deck_tiles()

@@ -1,6 +1,8 @@
 import socket
 from _thread import *
-import sys
+import pickle
+from player import Player
+from game import *
 
 server = socket.gethostbyname(socket.gethostname())
 port = 5555
@@ -15,35 +17,48 @@ except socket.error as e:
 s.listen(4)
 print("waiting for a connection, server started")
 
+currentPlayer=0
+currentPlayerlist = [Player(), Player(), Player(), Player()]
+
 def threaded_client(conn, player):
-    conn.send(str.encode("Connect"))
-    reply = ""
+    global currentPlayerlist
+
+    conn.send(pickle.dumps(currentPlayerlist[player]))
+
     while True:
         try:
-            data = conn.recv(2048).decode()
+            data = pickle.loads(conn.recv(2048))
 
             if not data:
                 print("disconnected")
                 break
             else:
-                if player == 0:
-                    reply = "hi player 1"
-                else:
-                    reply = "hi player 2"
-                print("received: ", data)
-                print("sending: ", reply)
+                currentPlayerlist[player] = data
 
-            conn.sendall(str.encode(reply))
+                for i in range(4):
+                    if i != player:
+                        conn.send(pickle.dumps(currentPlayerlist[i]))
+
+                print("received: ", data.get_name())
+                print("player name: ", currentPlayerlist[player].get_name())
+
         except:
             break
 
     print("lost connection")
     conn.close()
 
-currentPlayer=0
-while True:
-    conn, addr = s.accept()
-    print("connected to: ", addr)
 
-    start_new_thread(threaded_client, (conn, currentPlayer))
-    currentPlayer +=1
+
+while True:
+    
+    if currentPlayer<4:
+
+        conn, addr = s.accept()
+        print("connected to: ", addr)
+
+        start_new_thread(threaded_client, (conn, currentPlayer))
+        currentPlayer +=1
+    
+    else:
+        print("server full")

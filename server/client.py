@@ -3,6 +3,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 from network import Network
 import random
+from player import Player
 
 windowDims = (960, 540)
 
@@ -47,7 +48,7 @@ class joiningPage(tk.Frame):
         self.button_join.place(x=windowDims[0]//2-120, y=windowDims[1]//2-25, width=240, height=50)
 
 class RoomPage(tk.Frame):
-    def __init__(self, master, roomToGame):
+    def __init__(self, master, roomToGame, currentPlayer, n):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
 
         self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
@@ -57,8 +58,6 @@ class RoomPage(tk.Frame):
         self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
-
-
 
 class MahjongGamePage(tk.Frame):
     def __init__(self, master):
@@ -95,25 +94,25 @@ def main():
     def welcomeToJoin():
         # Destroy the welcome page and show the game page after connecting
         global joining_page
-        global n
         welcome_page.destroy()
         joining_page = joiningPage(root, joinToRoom)
         joining_page.pack()
-        n = Network()
-        startId = n.getId()
-        n.send(startId)
 
     def joinToRoom():
         global joining_page
         global n
         name = joining_page.name_var.get()
-        n.send(name)
+        n = Network()
+        p = n.getPlayer()
+        p.set_name(name)
+        currentplayers = n.send(p)
         joining_page.destroy()
+        room_page = RoomPage(root, roomToGame, currentplayers, n)
+        room_page.pack()
 
     def roomToGame():
         pass
 
-        
     
     def quit():
         root.quit()
