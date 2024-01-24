@@ -1,6 +1,6 @@
 class Player:
     def __init__(self):
-        self.name = ""
+        self.name = None
         self.deck = None
         self.win = False
 

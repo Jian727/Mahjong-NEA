@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 from network import Network
 import random
 from player import Player
+from game import Game
 
 windowDims = (960, 540)
 
@@ -48,7 +49,7 @@ class joiningPage(tk.Frame):
         self.button_join.place(x=windowDims[0]//2-120, y=windowDims[1]//2-25, width=240, height=50)
 
 class RoomPage(tk.Frame):
-    def __init__(self, master, roomToGame, currentPlayer, n):
+    def __init__(self, master, roomToGame, currentgame, n):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
 
         self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
@@ -58,6 +59,24 @@ class RoomPage(tk.Frame):
         self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
+
+        self.labels = [tk.Label(self, text="Waiting",font="calibri 15") for _ in range(4)]
+
+        # Place labels on each side of the window
+        for i, label in enumerate(self.labels):
+            if i == 1:
+                label.place(x=windowDims[0]//2-20, y=windowDims[1]-40)
+            elif i == 2:
+                label.place(x=windowDims[0]-80, y=windowDims[1]//2-20)
+            elif i == 3:
+                label.place(x=windowDims[0]//2-20, y=10)
+            else:
+                label.place(x=10, y=windowDims[1]//2-20)
+        
+    def update_names(self, names):
+        # Update labels with received names
+        for i, name in enumerate(names):
+            self.labels[i].config(text=name)
 
 class MahjongGamePage(tk.Frame):
     def __init__(self, master):
@@ -98,6 +117,17 @@ def main():
         joining_page = joiningPage(root, joinToRoom)
         joining_page.pack()
 
+    def update_names(game, room):
+        players = game.get_players()
+        names = []
+        for player in players:
+            if player.get_name() != None:
+                names.append(player.get_name())
+            else:
+                names.append("waiting")
+
+        room.update_names(names)
+
     def joinToRoom():
         global joining_page
         global n
@@ -105,10 +135,13 @@ def main():
         n = Network()
         p = n.getPlayer()
         p.set_name(name)
-        currentplayers = n.send(p)
+        currentgame = n.send(p)
         joining_page.destroy()
-        room_page = RoomPage(root, roomToGame, currentplayers, n)
+
+        room_page = RoomPage(root, roomToGame, currentgame, n)
         room_page.pack()
+
+        update_names(currentgame, RoomPage)
 
     def roomToGame():
         pass

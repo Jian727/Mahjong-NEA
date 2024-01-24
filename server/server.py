@@ -2,7 +2,7 @@ import socket
 from _thread import *
 import pickle
 from player import Player
-from game import *
+from game import Game
 
 server = socket.gethostbyname(socket.gethostname())
 port = 5555
@@ -20,10 +20,14 @@ print("waiting for a connection, server started")
 currentPlayer=0
 currentPlayerlist = [Player(), Player(), Player(), Player()]
 
-def threaded_client(conn, player):
+def threaded_client(conn, player, game):
     global currentPlayerlist
 
     conn.send(pickle.dumps(currentPlayerlist[player]))
+    data = pickle.loads(conn.recv(2048))
+    currentPlayerlist[player] = data
+    game.add_players(currentPlayerlist[player])
+    conn.send(pickle.dumps(game))
 
     while True:
         try:
@@ -35,9 +39,7 @@ def threaded_client(conn, player):
             else:
                 currentPlayerlist[player] = data
 
-                for i in range(4):
-                    if i != player:
-                        conn.send(pickle.dumps(currentPlayerlist[i]))
+                conn.send(pickle.dumps(game))
 
                 print("received: ", data.get_name())
                 print("player name: ", currentPlayerlist[player].get_name())
@@ -49,7 +51,6 @@ def threaded_client(conn, player):
     conn.close()
 
 
-
 while True:
     
     if currentPlayer<4:
@@ -57,8 +58,10 @@ while True:
         conn, addr = s.accept()
         print("connected to: ", addr)
 
-        start_new_thread(threaded_client, (conn, currentPlayer))
+        game =Game()
+
+        start_new_thread(threaded_client, (conn, currentPlayer, game))
         currentPlayer +=1
     
     else:
-        print("server full")
+        game.ready = True

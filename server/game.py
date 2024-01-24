@@ -12,16 +12,11 @@ class Game:
         self.playerconns=[]
         self.players=[]
         self.names=[]
+        self.ready = False
         self.condition=False
-        self.queue=asyncio.Queue()
-        self.message=False
-        
-    async def updatequeue(self,data):
-        await self.queue.put(data)
 
-    async def getqueue(self):
-        temp=await self.queue.get()
-        return temp
+    def connected(self):
+        return self.ready
     
     def get_tilesoutside(self):
         return self.tilesoutside
