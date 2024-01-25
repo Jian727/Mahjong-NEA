@@ -8,8 +8,6 @@ class Game:
         self.tiles = [] #represent all the tiles
         self.tilesremain= [] #represent the avaliable tiles on table 
         self.tilesoutside=[] #represent the tiles discarded on table
-        self.roomnum=0
-        self.playerconns=[]
         self.players=[]
         self.names=[]
         self.ready = False

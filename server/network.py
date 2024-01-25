@@ -7,10 +7,10 @@ class Network:
         self.server = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.addr = (self.server, self.port)
-        self.player = self.connect()
+        self.game = self.connect()
 
-    def getPlayer(self):
-        return self.player
+    def getGame(self):
+        return self.game
 
     def connect(self):
         try:
@@ -21,15 +21,21 @@ class Network:
 
     def send(self, data):
         try:
-            self.client.send(pickle.dumps(data))
+            self.client.send(str.encode(data))
             return pickle.loads(self.client.recv(2048))
             
         except socket.error as e:
             print(e)
-    
+
     def receive(self):
-         try:
-            return pickle.loads(self.client.recv(2048))
-         except:
-             pass
+        try:
+            data = self.client.recv(2048)
+            if not data:
+                return None
+            deserialized_data = pickle.loads(data)
+            return deserialized_data
+        except:
+            pass
+
+    
 

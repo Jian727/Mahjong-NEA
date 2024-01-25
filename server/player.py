@@ -1,18 +1,10 @@
-import pickle
+
 class Player:
     def __init__(self):
         self.name = None
         self.deck = None
         self.win = False
-        self.connection = None
-
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        del state['connection']
-        return state
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
+        self.connection = False
 
     def set_name(self, n_name):
         self.name = n_name
@@ -32,8 +24,8 @@ class Player:
     def get_connection(self):
         return self.connection
     
-    def set_connection(self, conn):
-        self.connection = conn
+    def set_connection(self):
+        self.connection = True
 
     def get_deck_tiles(self):
         return self.deck.get_deck_tiles()

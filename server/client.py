@@ -121,7 +121,6 @@ def main():
         players = game.get_players()
         names = []
         for player in players:
-            print(player.get_name)
             names.append(player.get_name())
 
         while len(names) != 4:
@@ -143,17 +142,17 @@ def main():
 
         name = joining_page.name_var.get()
         n = Network()
-        p = n.getPlayer()
-        p.set_name(name)
-        currentgame = n.send(p)
+        n.getGame()
+        currentgame = n.send(name)
         joining_page.destroy()
+        print("distroyed")
 
         room_page = RoomPage(root, roomToGame, currentgame, n)
         room_page.pack()
 
-        while "waiting" in getPlayersName(currentgame, name):
-            currentgame = n.receive()
-            room_page.update_names(getPlayersName(currentgame, name))
+        currentgame = n.send("request")
+        room_page.update_names(getPlayersName(currentgame, name))
+        
             
 
 
