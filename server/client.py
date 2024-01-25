@@ -64,11 +64,11 @@ class RoomPage(tk.Frame):
 
         # Place labels on each side of the window
         for i, label in enumerate(self.labels):
-            if i == 1:
+            if i == 0:
                 label.place(x=windowDims[0]//2-20, y=windowDims[1]-40)
-            elif i == 2:
+            elif i == 1:
                 label.place(x=windowDims[0]-80, y=windowDims[1]//2-20)
-            elif i == 3:
+            elif i == 2:
                 label.place(x=windowDims[0]//2-20, y=10)
             else:
                 label.place(x=10, y=windowDims[1]//2-20)
@@ -117,20 +117,30 @@ def main():
         joining_page = joiningPage(root, joinToRoom)
         joining_page.pack()
 
-    def update_names(game, room):
+    def getPlayersName(game, myname):
         players = game.get_players()
         names = []
         for player in players:
-            if player.get_name() != None:
-                names.append(player.get_name())
-            else:
-                names.append("waiting")
+            print(player.get_name)
+            names.append(player.get_name())
 
-        room.update_names(names)
+        while len(names) != 4:
+            names.append("waiting")
+            
+        
+        for i, name in enumerate(names):
+            if name == myname:
+                break
+            else:
+                names.append(names.pop(i))
+        
+        return names
 
     def joinToRoom():
         global joining_page
         global n
+        global room_page
+
         name = joining_page.name_var.get()
         n = Network()
         p = n.getPlayer()
@@ -141,7 +151,11 @@ def main():
         room_page = RoomPage(root, roomToGame, currentgame, n)
         room_page.pack()
 
-        update_names(currentgame, RoomPage)
+        while "waiting" in getPlayersName(currentgame, name):
+            currentgame = n.receive()
+            room_page.update_names(getPlayersName(currentgame, name))
+            
+
 
     def roomToGame():
         pass

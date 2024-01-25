@@ -18,16 +18,35 @@ s.listen(4)
 print("waiting for a connection, server started")
 
 currentPlayer=0
-currentPlayerlist = [Player(), Player(), Player(), Player()]
+currentPlayerlist = [["", Player()], ["", Player()], ["", Player()], ["", Player()]]
+connlist = []
 
-def threaded_client(conn, player, game):
+def broadcast_to_clients(exclude_player):
     global currentPlayerlist
+    global game
 
-    conn.send(pickle.dumps(currentPlayerlist[player]))
+    for i, client in enumerate(currentPlayerlist):
+        if i != exclude_player and client.get_connection():
+            try:
+                client.get_connection().send(pickle.dumps(game))
+            except socket.error:
+                # Handle disconnected client
+                currentPlayerlist[i][0].disconnect()
+
+def threaded_client(conn, player):
+    global currentPlayerlist
+    global game
+
+    conn.send(pickle.dumps(currentPlayerlist[player][1]))
     data = pickle.loads(conn.recv(2048))
-    currentPlayerlist[player] = data
-    game.add_players(currentPlayerlist[player])
+    currentPlayerlist[player][1] = data
+    currentPlayerlist[player][1].set_connection()
+    currentPlayerlist[player][0] = conn
+
+    game.add_players(currentPlayerlist[player][1])
+    print(type(game))
     conn.send(pickle.dumps(game))
+    broadcast_to_clients(currentPlayerlist[player][1])
 
     while True:
         try:
@@ -42,25 +61,24 @@ def threaded_client(conn, player, game):
                 conn.send(pickle.dumps(game))
 
                 print("received: ", data.get_name())
-                print("player name: ", currentPlayerlist[player].get_name())
+                print("player name: ", currentPlayerlist[player][1].get_name())
 
         except:
             break
 
+
     print("lost connection")
     conn.close()
 
+game = Game()
 
 while True:
     
     if currentPlayer<4:
 
         conn, addr = s.accept()
-        print("connected to: ", addr)
-
-        game =Game()
-
-        start_new_thread(threaded_client, (conn, currentPlayer, game))
+        print("connected to: ", conn)
+        start_new_thread(threaded_client, (conn, currentPlayer))
         currentPlayer +=1
     
     else:
