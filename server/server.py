@@ -20,6 +20,19 @@ print("waiting for a connection, server started")
 currentPlayer=0
 # [conn, playerobject]
 currentPlayerlist = [["", Player()], ["", Player()], ["", Player()], ["", Player()]]
+
+def notify_new_player_joined():
+    global currentPlayerlist
+    global game
+
+    for client in currentPlayerlist:
+        conn = client[0]
+        if conn != "":
+            try:
+                conn.send(str.encode("new_player"))
+            except socket.error:
+                # Handle disconnected client
+                pass
                 
 def threaded_client(conn, player):
     global currentPlayerlist
@@ -33,10 +46,10 @@ def threaded_client(conn, player):
     currentPlayerlist[player][0] = conn
 
     game.add_players(currentPlayerlist[player][1])
+    
+    conn.send(pickle.dumps(game))
 
-    for client in currentPlayerlist:
-        if client[1].get_connection():
-            client[0].send(pickle.dumps(game))
+    notify_new_player_joined()
 
     while True:
         try:
@@ -48,7 +61,7 @@ def threaded_client(conn, player):
                 if data == "request":
                 # send the current state of the game to the client
                     print("received")
-                    conn.send(pickle.dumps(game))
+                    conn.sendall(pickle.dumps(game))
                     print("sent")
                 else:
                     pass

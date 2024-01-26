@@ -3,8 +3,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 from network import Network
 import random
-from player import Player
-from game import Game
+import threading
 
 windowDims = (960, 540)
 
@@ -49,11 +48,14 @@ class joiningPage(tk.Frame):
         self.button_join.place(x=windowDims[0]//2-120, y=windowDims[1]//2-25, width=240, height=50)
 
 class RoomPage(tk.Frame):
-    def __init__(self, master, roomToGame, currentgame, n):
+    def __init__(self, master, roomToGame, currentgame, network):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
 
         self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
         self.canvas.pack()
+
+        self.network = network
+        self.game = currentgame
 
         self.image = Image.open("window/main_background.png")
         self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
@@ -77,6 +79,8 @@ class RoomPage(tk.Frame):
         # Update labels with received names
         for i, name in enumerate(names):
             self.labels[i].config(text=name)
+
+        self.update_idletasks()
 
 class MahjongGamePage(tk.Frame):
     def __init__(self, master):
@@ -127,13 +131,27 @@ def main():
             names.append("waiting")
             
         
-        for i, name in enumerate(names):
-            if name == myname:
-                break
-            else:
-                names.append(names.pop(i))
+        index = names.index(myname)
+        names = names[index:]+names[:index]
         
         return names
+    
+    def listen_for_notifications(network, name):
+        global room_page
+    
+        while True:
+            try:
+                notification = network.receive_string()
+                if notification == "new_player":
+                    # Handle the notification that a new player joined
+                    currentgame = network.send("request")
+                    room_page.update_names(getPlayersName(currentgame, name))
+                else:
+                    # Handle other types of notifications
+                    pass
+            except Exception as e:
+                print(f"Error receiving notification: {e}")
+                break
 
     def joinToRoom():
         global joining_page
@@ -150,16 +168,17 @@ def main():
         room_page = RoomPage(root, roomToGame, currentgame, n)
         room_page.pack()
 
-        currentgame = n.send("request")
-        room_page.update_names(getPlayersName(currentgame, name))
-        
-            
+        '''currentgame = n.receive_object()
+        print(type(currentgame))
+        room_page.update_names(getPlayersName(currentgame, name))'''
+
+        listen_thread = threading.Thread(target=listen_for_notifications, args=(n, name))
+        listen_thread.start()
 
 
     def roomToGame():
         pass
 
-    
     def quit():
         root.quit()
 

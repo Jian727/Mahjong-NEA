@@ -22,18 +22,28 @@ class Network:
     def send(self, data):
         try:
             self.client.send(str.encode(data))
-            return pickle.loads(self.client.recv(2048))
+            result = self.client.recv(2048)
+            return pickle.loads(result)
             
         except socket.error as e:
             print(e)
 
-    def receive(self):
+    def receive_object(self):
         try:
             data = self.client.recv(2048)
             if not data:
                 return None
             deserialized_data = pickle.loads(data)
             return deserialized_data
+        except:
+            pass
+
+    def receive_string(self):
+        try:
+            data = self.client.recv(2048).decode()
+            if not data:
+                return None
+            return data
         except:
             pass
 
