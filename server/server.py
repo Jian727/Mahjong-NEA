@@ -60,9 +60,10 @@ def threaded_client(conn, player):
             else:
                 if data == "request":
                 # send the current state of the game to the client
-                    print("received")
                     conn.sendall(pickle.dumps(game))
-                    print("sent")
+                elif data == "start":
+                    game.set_ready()
+                    
                 else:
                     pass
 

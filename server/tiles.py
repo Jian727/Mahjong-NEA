@@ -1,7 +1,7 @@
 '''
-dots = 0-8
-bamboo = 9-17
-char = 18-26
+bamboo = 0-8
+char = 9-17
+dots = 18-26
 winds = 27-30
 dragons = 31-33
 '''

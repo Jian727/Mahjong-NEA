@@ -13,8 +13,11 @@ class Game:
         self.ready = False
         self.condition=False
 
-    def connected(self):
+    def get_ready(self):
         return self.ready
+    
+    def set_ready(self):
+        self.ready = True
     
     def get_tilesoutside(self):
         return self.tilesoutside
