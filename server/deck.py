@@ -35,8 +35,9 @@ class Deck:
         else:
             self.game.endgame()
 
-    def discard_tile(self, index): 
+    def discard_tile(self, num): 
         #need to return the tile for discarding piles for actions
+        index = tilesToNum(self.deck_tiles).index(num)
         tile = self.deck_tiles[int(index)]
         self.deck_tiles.remove(tile)
         self.game.add_tilesoutside(tile)

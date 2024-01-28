@@ -5,9 +5,13 @@ from player import *
 from tiles import *
 
 player1 = Player()
+player1.set_name("1")
 player2 = Player()
+player2.set_name("2")
 player3 = Player()
+player3.set_name("3")
 player4 = Player()
+player4.set_name("4")
 
 game = Game()
 

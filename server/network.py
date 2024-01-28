@@ -1,5 +1,6 @@
 import socket
 import pickle
+from game import Game
 
 class Network:
     def __init__(self):
@@ -19,14 +20,18 @@ class Network:
         except:
             pass
 
-    def send(self, data):
+    def send(self, data): #return object
         try:
-            self.client.send(str.encode(data))
+            if isinstance(data, Game):
+                self.client.send(pickle.dumps(data))
+            else:
+                self.client.send(str.encode(data))
             result = self.client.recv(2048*8)
             return pickle.loads(result)
             
         except socket.error as e:
             print(e)
+
 
     def receive_object(self):
         try:

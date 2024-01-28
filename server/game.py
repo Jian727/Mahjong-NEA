@@ -1,5 +1,4 @@
 import random
-import asyncio
 from tiles import *
 from deck import *
 
@@ -95,8 +94,7 @@ class Game:
         player_deck  = player.get_deck()
         self.show_info(player)
         discard = int(input("Please input the tile you want to discard: "))
-        index = tilesToNum(deck).index(discard)
-        player_deck.discard_tile(index)
+        player_deck.discard_tile(discard)
         print(f"tile discarded, tiles remain:{len(self.get_tilesremain())}")
         print(f"tile outside: {tilesToNum(self.get_tilesoutside())}")
         print()

@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import *
 from PIL import Image, ImageTk
 from network import Network
-import random
 import threading
 
 windowDims = (960, 540)
@@ -48,13 +47,12 @@ class joiningPage(tk.Frame):
         self.button_join.place(x=windowDims[0]//2-120, y=windowDims[1]//2-25, width=240, height=50)
 
 class RoomPage(tk.Frame):
-    def __init__(self, master, currentgame, network):
+    def __init__(self, master, currentgame):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
 
         self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
         self.canvas.pack()
 
-        self.network = network
         self.game = currentgame
         self.status = False
 
@@ -114,7 +112,13 @@ class MahjongGamePage(tk.Frame):
         for i in range(36):
             self.img_path.append("img/{}.png".format(i))
 
-        self.create_button()
+        self.create_tiles()
+
+    def get_player_num(self):
+        return self.player_num
+    
+    def get_game(self):
+        return self.game
 
     def update_game(self, game):
         self.game = game
@@ -123,19 +127,22 @@ class MahjongGamePage(tk.Frame):
         result =img.rotate(90, expand=True)
         return result.resize((40, 29),Image.LANCZOS)
 
-    def create_button(self):
+    def create_tiles(self):
         deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
         self.buttons = []
+        self.discard = False
 
         #create button for own deck
         for i, tile in enumerate(deck):
             num = tile.get_cal_value()
             image = Image.open(self.img_path[num])
             photo = ImageTk.PhotoImage(image)
-            button1 = Button(self, image=photo, command=lambda n=num: self.click(n), compound="center")
+            button1 = Button(self, image=photo, compound="center")
+            button1.config(command=lambda n=num, b=button1: self.click(n, b))
             button1.image = photo
             self.canvas.create_window(i*40+200, windowDims[1]-40, window=button1)
             self.buttons.append(button1)
+        
 
         #create image for others deck
         print(self.img_path[34])
@@ -156,48 +163,41 @@ class MahjongGamePage(tk.Frame):
 
         self.opp_player.reverse()
         self.right_player.reverse()
-    
-    def click(self, num):
-        print(num)
 
-'''        for i, image_path in enumerate(self.img_path):
-            # Check if the image file exists
+    def update_tile_button(self):
+        self.discard = True
 
-            image = Image.open(image_path)
-            image = image.resize((50, 50), Image.Resampling.LANCZOS)  # Resize image as needed
+        deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
+
+        for i, tile in enumerate(deck):
+
+            num = tile.get_cal_value()
+            image = Image.open(self.img_path[num])
             photo = ImageTk.PhotoImage(image)
+            
+            if i < 14:
+                button = self.buttons[i]
+                button.config(command= lambda n=num, b=button : self.click(n), image=photo)
+            else:
+                button = Button(self, image=photo, command=lambda n=num, b=button: self.click(n,b), compound="center")
+                button.config(command=lambda n=num, b=button: self.click(n, b))
+                self.canvas.create_window(i*40+200, windowDims[1]-40, window=button)
+                self.buttons.append(button)
 
-            # Create button with image
-            button = tk.Button(self, image=photo, text=f"Button {i+1}", compound="top", command=lambda btn=i: self.on_button_click(btn))
-            button.image = photo  # Keep a reference to the image to prevent garbage collection
-            button.pack(side=tk.LEFT, padx=5)
-
-            # Add the button to the list
-            self.buttons.append(button)
 
 
         
+        
 
-        # Create the game board
-        self.game_board = tk.Frame(self, bg="green")  # Set background
-        self.game_board.pack()
 
-        self.tiles = []
-        for row in range(4):
-            for col in range(9):
-                index = row * 9 + col
-                tile = tk.Button(
-                    self.game_board, text=self.tile_set[index],
-                    width=4, height=2, command=lambda i=index: self.handle_tile_click(i),
-                    bg="yellow"  # Set background
-                )
-                tile.grid(row=row, column=col, padx=2, pady=2)
-                self.tiles.append(tile)
+    
+    def click(self, num, button):
+        if not self.discard:
+            pass
+        else:
+            self.game
+            self.discard = False
 
-    def handle_tile_click(self, index):
-        # Add your game logic here
-        # You may want to handle tile matching, scoring, etc.
-        print(f"Clicked tile at index {index}")'''
 
 def main():
     def welcomeToJoin():
@@ -244,6 +244,20 @@ def main():
                     print(f"Error receiving notification: {e}")
                     break
 
+    def update_game(network, game):
+        global mahjong_game
+
+        while True:
+            try:
+                round_count = int(network.receive_string())
+                if mahjong_game.get_player_num() == round_count:
+                    player = game.get_players()[0] 
+                    player.get_deck().draw_tile()
+
+            except Exception as e:
+                print(f"Error receiving notification: {e}")
+                break
+
     def joinToRoom():
         global joining_page
         global n
@@ -256,7 +270,7 @@ def main():
         currentgame = n.send(name)
         joining_page.destroy()
 
-        room_page = RoomPage(root, currentgame, n)
+        room_page = RoomPage(root, currentgame)
         room_page.pack()
 
         listen_thread = threading.Thread(target=listen_for_notifications, args=(n, name))
@@ -266,16 +280,16 @@ def main():
         global room_page
         global n
         global name
+        global mahjong_game
 
         currentgame = n.send("start")
         room_page.destroy()
 
         mahjong_game = MahjongGamePage(root, currentgame, n, name)
         mahjong_game.pack()
-
-
-
-
+        currentgame = mahjong_game.get_game()
+        listen_thread2 =  threading.Thread(target=update_game, args=(n, currentgame))
+        listen_thread2.start()
 
     def quit():
         root.quit()

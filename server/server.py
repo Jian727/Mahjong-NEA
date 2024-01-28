@@ -21,7 +21,7 @@ currentPlayer=0
 # [conn, playerobject]
 currentPlayerlist = [["", Player()], ["", Player()], ["", Player()], ["", Player()]]
 
-def notify_new_player_joined():
+def boardcast(data):
     global currentPlayerlist
     global game
 
@@ -29,7 +29,10 @@ def notify_new_player_joined():
         conn = client[0]
         if conn != "":
             try:
-                conn.send(str.encode("new_player"))
+                if isinstance(data, Game):
+                     conn.send(pickle.dumps(game))
+                else:
+                    conn.send(str.encode(data))
             except socket.error:
                 # Handle disconnected client
                 pass
@@ -37,6 +40,7 @@ def notify_new_player_joined():
 def threaded_client(conn, player):
     global currentPlayerlist
     global game
+    global round_count
 
     conn.send(pickle.dumps(game))
     data = conn.recv(2048).decode()
@@ -49,7 +53,7 @@ def threaded_client(conn, player):
     
     conn.send(pickle.dumps(game))
 
-    notify_new_player_joined()
+    boardcast("new_player")
 
     while True:
         try:
@@ -65,7 +69,10 @@ def threaded_client(conn, player):
                     game.initialize_tiles()
                     game.initial_deck()
                     conn.sendall(pickle.dumps(game))
-                    
+                    conn.send(str.encode(round_count))
+                    game = pickle.loads(conn.recv(2048*8))
+                    boardcast(game)
+
                 else:
                     pass
 
@@ -77,6 +84,7 @@ def threaded_client(conn, player):
     conn.close()
 
 game = Game()
+round_count = 0
 
 while True:
     
