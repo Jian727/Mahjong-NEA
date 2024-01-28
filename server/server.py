@@ -69,7 +69,10 @@ def threaded_client(conn, player):
                     game.initialize_tiles()
                     game.initial_deck()
                     conn.sendall(pickle.dumps(game))
-                    conn.send(str.encode(round_count))
+
+                    #problem here
+                    conn.send(str.encode(1))
+                    print("sent")
                     game = pickle.loads(conn.recv(2048*8))
                     boardcast(game)
 

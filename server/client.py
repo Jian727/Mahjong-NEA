@@ -86,7 +86,7 @@ class RoomPage(tk.Frame):
         
         if "waiting" not in names:
             self.status = True
-
+#Error receiving notification: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'class MahjongGamePage(tk.Frame):
 class MahjongGamePage(tk.Frame):
     def __init__(self, master, game, network, name):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
@@ -249,8 +249,10 @@ def main():
 
         while True:
             try:
-                round_count = int(network.receive_string())
-                if mahjong_game.get_player_num() == round_count:
+                #problem here
+                round_count = network.receive_string()
+                print(round_count)
+                if mahjong_game.get_player_num() == int(round_count):
                     player = game.get_players()[0] 
                     player.get_deck().draw_tile()
 
