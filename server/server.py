@@ -62,7 +62,9 @@ def threaded_client(conn, player):
                 # send the current state of the game to the client
                     conn.sendall(pickle.dumps(game))
                 elif data == "start":
-                    game.set_ready()
+                    game.initialize_tiles()
+                    game.initial_deck()
+                    conn.sendall(pickle.dumps(game))
                     
                 else:
                     pass

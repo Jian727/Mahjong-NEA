@@ -22,7 +22,7 @@ class Network:
     def send(self, data):
         try:
             self.client.send(str.encode(data))
-            result = self.client.recv(2048)
+            result = self.client.recv(2048*8)
             return pickle.loads(result)
             
         except socket.error as e:
@@ -30,7 +30,7 @@ class Network:
 
     def receive_object(self):
         try:
-            data = self.client.recv(2048)
+            data = self.client.recv(2048*8)
             if not data:
                 return None
             deserialized_data = pickle.loads(data)

@@ -34,7 +34,7 @@ class joiningPage(tk.Frame):
         self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
         self.canvas.pack()
 
-        self.image = Image.open("window/main_background.png")
+        self.image = Image.open("img/main_background.png")
         self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
@@ -90,7 +90,7 @@ class RoomPage(tk.Frame):
             self.status = True
 
 class MahjongGamePage(tk.Frame):
-    def __init__(self, master, game):
+    def __init__(self, master, game, network, name):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
 
         self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
@@ -102,18 +102,65 @@ class MahjongGamePage(tk.Frame):
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
 
         self.game = game
+        self.network = network
+
+        #get player number
+        for i, player in enumerate(self.game.get_players()):
+            if player.get_name() == name:
+                self.player_num = i
 
         #index 0-34, 34 is the back of tile
         self.img_path = []
-        for i in range(34):
+        for i in range(36):
             self.img_path.append("img/{}.png".format(i))
-        self.img_path.append("img/concealed.png")
+
+        self.create_button()
+
+    def update_game(self, game):
+        self.game = game
+
+    def rotate_image(self, img):
+        result =img.rotate(90, expand=True)
+        return result.resize((40, 29),Image.LANCZOS)
 
     def create_button(self):
-
+        deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
         self.buttons = []
 
-        for i, image_path in enumerate(self.img_path):
+        #create button for own deck
+        for i, tile in enumerate(deck):
+            num = tile.get_cal_value()
+            image = Image.open(self.img_path[num])
+            photo = ImageTk.PhotoImage(image)
+            button1 = Button(self, image=photo, command=lambda n=num: self.click(n), compound="center")
+            button1.image = photo
+            self.canvas.create_window(i*40+200, windowDims[1]-40, window=button1)
+            self.buttons.append(button1)
+
+        #create image for others deck
+        print(self.img_path[34])
+        back =Image.open(self.img_path[34])
+        photo_back = ImageTk.PhotoImage(back)
+        rotated_photo_back = ImageTk.PhotoImage(self.rotate_image(back))
+        self.photo_back= photo_back
+        self.rotated_photo_back = rotated_photo_back
+
+        self.left_player = []
+        self.opp_player = []
+        self.right_player = []
+
+        for i in range(13):
+            self.left_player.append(self.canvas.create_image(20, i*33+60, anchor=tk.NW, image=self.rotated_photo_back))
+            self.opp_player.append(self.canvas.create_image(i*40+200, 0, anchor=tk.NW, image=self.photo_back))
+            self.right_player.append(self.canvas.create_image(windowDims[0]-60, i*33+60, anchor=tk.NW, image=self.rotated_photo_back))
+
+        self.opp_player.reverse()
+        self.right_player.reverse()
+    
+    def click(self, num):
+        print(num)
+
+'''        for i, image_path in enumerate(self.img_path):
             # Check if the image file exists
 
             image = Image.open(image_path)
@@ -131,7 +178,7 @@ class MahjongGamePage(tk.Frame):
 
         
 
-        '''# Create the game board
+        # Create the game board
         self.game_board = tk.Frame(self, bg="green")  # Set background
         self.game_board.pack()
 
@@ -201,6 +248,7 @@ def main():
         global joining_page
         global n
         global room_page
+        global name
 
         name = joining_page.name_var.get()
         n = Network()
@@ -217,11 +265,12 @@ def main():
     def roomToGame():
         global room_page
         global n
+        global name
 
         currentgame = n.send("start")
         room_page.destroy()
 
-        mahjong_game = MahjongGamePage(root, currentgame)
+        mahjong_game = MahjongGamePage(root, currentgame, n, name)
         mahjong_game.pack()
 
 

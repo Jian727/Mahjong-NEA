@@ -10,14 +10,7 @@ class Game:
         self.tilesoutside=[] #represent the tiles discarded on table
         self.players=[]
         self.names=[]
-        self.ready = False
         self.condition=False
-
-    def get_ready(self):
-        return self.ready
-    
-    def set_ready(self):
-        self.ready = True
     
     def get_tilesoutside(self):
         return self.tilesoutside

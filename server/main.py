@@ -4,10 +4,10 @@ from game import *
 from player import *
 from tiles import *
 
-player1 = Player("Jianne")
-player2 = Player("Bot1")
-player3 = Player("Bot2")
-player4 = Player("Bot3")
+player1 = Player()
+player2 = Player()
+player3 = Player()
+player4 = Player()
 
 game = Game()
 
