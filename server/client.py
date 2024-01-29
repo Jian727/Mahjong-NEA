@@ -86,7 +86,7 @@ class RoomPage(tk.Frame):
         
         if "waiting" not in names:
             self.status = True
-#Error receiving notification: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'class MahjongGamePage(tk.Frame):
+
 class MahjongGamePage(tk.Frame):
     def __init__(self, master, game, network, name):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
@@ -145,7 +145,6 @@ class MahjongGamePage(tk.Frame):
         
 
         #create image for others deck
-        print(self.img_path[34])
         back =Image.open(self.img_path[34])
         photo_back = ImageTk.PhotoImage(back)
         rotated_photo_back = ImageTk.PhotoImage(self.rotate_image(back))
@@ -165,8 +164,6 @@ class MahjongGamePage(tk.Frame):
         self.right_player.reverse()
 
     def update_tile_button(self):
-        self.discard = True
-
         deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
 
         for i, tile in enumerate(deck):
@@ -175,28 +172,32 @@ class MahjongGamePage(tk.Frame):
             image = Image.open(self.img_path[num])
             photo = ImageTk.PhotoImage(image)
             
-            if i < 14:
+            if i < 13:
                 button = self.buttons[i]
-                button.config(command= lambda n=num, b=button : self.click(n), image=photo)
+                button.config(command= lambda n=num, b=button : self.click(n, b), image=photo)
+                button.image = photo
+                self.buttons[i] = button
             else:
+                self.discard = True
                 button = Button(self, image=photo, command=lambda n=num, b=button: self.click(n,b), compound="center")
                 button.config(command=lambda n=num, b=button: self.click(n, b))
+                button.image = photo
                 self.canvas.create_window(i*40+200, windowDims[1]-40, window=button)
                 self.buttons.append(button)
-
-
-
-        
-        
-
-
     
     def click(self, num, button):
         if not self.discard:
             pass
         else:
-            self.game
+            deck = self.game.get_players()[self.player_num].get_deck()
+            deck.discard_tile(num)
+            #send game back to server
             self.discard = False
+            self.buttons.pop()
+            self.update_tile_button()
+            self.buttons[13].destroy()
+            self.network.onlysend("discard")
+            self.network.onlysend(self.game)
 
 
 def main():
@@ -244,21 +245,25 @@ def main():
                     print(f"Error receiving notification: {e}")
                     break
 
-    def update_game(network, game):
+    def update_game():
         global mahjong_game
+        global n
+        update = True
 
-        while True:
-            try:
-                #problem here
-                round_count = network.receive_string()
-                print(round_count)
-                if mahjong_game.get_player_num() == int(round_count):
-                    player = game.get_players()[0] 
-                    player.get_deck().draw_tile()
+        while update:
+            update = False
+            n.onlysend("draw")
+            game = n.receive_object()
+            round_count = n.receive_string()
+            print(round_count)
+            if mahjong_game.get_player_num() == int(round_count):
+                player = game.get_players()[0] 
+                player.get_deck().draw_tile()
+                mahjong_game.update_game(game)
+                mahjong_game.update_tile_button()
+            if n.receive_string() == "continue":
+                update = True
 
-            except Exception as e:
-                print(f"Error receiving notification: {e}")
-                break
 
     def joinToRoom():
         global joining_page
@@ -290,7 +295,7 @@ def main():
         mahjong_game = MahjongGamePage(root, currentgame, n, name)
         mahjong_game.pack()
         currentgame = mahjong_game.get_game()
-        listen_thread2 =  threading.Thread(target=update_game, args=(n, currentgame))
+        listen_thread2 =  threading.Thread(target=update_game, args=())
         listen_thread2.start()
 
     def quit():

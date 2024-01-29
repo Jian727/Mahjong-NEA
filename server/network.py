@@ -20,12 +20,22 @@ class Network:
         except:
             pass
 
+    def onlysend(self, data): #only send no return
+        try:
+            if isinstance(data, Game):
+                self.client.send(pickle.dumps(data))
+            else:
+                self.client.send(str.encode(data))
+        except:
+            pass
+
     def send(self, data): #return object
         try:
             if isinstance(data, Game):
                 self.client.send(pickle.dumps(data))
             else:
                 self.client.send(str.encode(data))
+
             result = self.client.recv(2048*8)
             return pickle.loads(result)
             
@@ -33,7 +43,7 @@ class Network:
             print(e)
 
 
-    def receive_object(self):
+    def receive_object(self):#return object
         try:
             data = self.client.recv(2048*8)
             if not data:
@@ -43,7 +53,7 @@ class Network:
         except:
             pass
 
-    def receive_string(self):
+    def receive_string(self):#return string
         try:
             data = self.client.recv(2048).decode()
             if not data:

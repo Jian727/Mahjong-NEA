@@ -65,16 +65,21 @@ def threaded_client(conn, player):
                 if data == "request":
                 # send the current state of the game to the client
                     conn.sendall(pickle.dumps(game))
+
                 elif data == "start":
                     game.initialize_tiles()
                     game.initial_deck()
                     conn.sendall(pickle.dumps(game))
 
-                    #problem here
-                    conn.send(str.encode(1))
-                    print("sent")
+                elif data == "draw":
+                    conn.sendall(pickle.dumps(game))
+                    conn.sendall(str.encode(str(round_count)))
+
+                elif data == "discard":
                     game = pickle.loads(conn.recv(2048*8))
-                    boardcast(game)
+                    round_count +=1
+                    round_count % 4
+                    boardcast("continue")
 
                 else:
                     pass
