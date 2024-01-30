@@ -78,7 +78,7 @@ def threaded_client(conn, player):
                 elif data == "discard":
                     game = pickle.loads(conn.recv(2048*8))
                     round_count +=1
-                    round_count % 4
+                    round_count = round_count % 4
                     boardcast("continue")
 
                 else:

@@ -193,9 +193,9 @@ class MahjongGamePage(tk.Frame):
             deck.discard_tile(num)
             #send game back to server
             self.discard = False
+            self.buttons[-1].destroy()
             self.buttons.pop()
             self.update_tile_button()
-            self.buttons[13].destroy()
             self.network.onlysend("discard")
             self.network.onlysend(self.game)
 
@@ -256,8 +256,9 @@ def main():
             game = n.receive_object()
             round_count = n.receive_string()
             print(round_count)
-            if mahjong_game.get_player_num() == int(round_count):
-                player = game.get_players()[0] 
+            player_num = mahjong_game.get_player_num()
+            if player_num == int(round_count):
+                player = game.get_players()[player_num] 
                 player.get_deck().draw_tile()
                 mahjong_game.update_game(game)
                 mahjong_game.update_tile_button()
