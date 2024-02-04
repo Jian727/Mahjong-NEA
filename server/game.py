@@ -8,7 +8,6 @@ class Game:
         self.tilesremain= [] #represent the avaliable tiles on table 
         self.tilesoutside=[] #represent the tiles discarded on table
         self.players=[]
-        self.names=[]
         self.condition=False
     
     def get_tilesoutside(self):

@@ -15,7 +15,7 @@ class Deck:
 
         n = len(self.deck_tiles)  
         if n <= 1:
-            return  
+            return None
         for i in range(1, n):  
             temp = self.deck_tiles[i]  
             j = i-1

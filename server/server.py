@@ -17,11 +17,9 @@ except socket.error as e:
 s.listen(4)
 print("waiting for a connection, server started")
 
-currentPlayer=0
-# [conn, playerobject]
-currentPlayerlist = [["", Player()], ["", Player()], ["", Player()], ["", Player()]]
 
-def boardcast(data):
+
+def broadcast(data):
     global currentPlayerlist
     global game
 
@@ -53,7 +51,7 @@ def threaded_client(conn, player):
     
     conn.send(pickle.dumps(game))
 
-    boardcast("new_player")
+    broadcast("new_player")
 
     while True:
         try:
@@ -79,7 +77,7 @@ def threaded_client(conn, player):
                     game = pickle.loads(conn.recv(2048*8))
                     round_count +=1
                     round_count = round_count % 4
-                    boardcast("continue")
+                    broadcast("continue")
 
                 else:
                     pass
@@ -90,6 +88,10 @@ def threaded_client(conn, player):
 
     print("lost connection")
     conn.close()
+
+currentPlayer=0
+# [conn, playerobject]
+currentPlayerlist = [["", Player()], ["", Player()], ["", Player()], ["", Player()]]
 
 game = Game()
 round_count = 0
@@ -105,3 +107,4 @@ while True:
     
     else:
         game.ready = True
+

@@ -91,6 +91,9 @@ class MahjongGamePage(tk.Frame):
     def __init__(self, master, game, network, name):
         super().__init__(master, width=windowDims[0], height=windowDims[1])
 
+        self.game = game
+        self.network = network
+
         self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
         self.canvas.pack()
 
@@ -98,9 +101,6 @@ class MahjongGamePage(tk.Frame):
         self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
-
-        self.game = game
-        self.network = network
 
         #get player number
         for i, player in enumerate(self.game.get_players()):
@@ -131,6 +131,7 @@ class MahjongGamePage(tk.Frame):
         deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
         self.buttons = []
         self.discard = False
+        self.remain_tiles = self.canvas.create_text(windowDims[0]//2, windowDims[1]//2, text = str(len(self.game.get_tilesremain())), font="calibri 30", fill="white")
 
         #create button for own deck
         for i, tile in enumerate(deck):
@@ -184,6 +185,9 @@ class MahjongGamePage(tk.Frame):
                 button.image = photo
                 self.canvas.create_window(i*40+200, windowDims[1]-40, window=button)
                 self.buttons.append(button)
+
+    def update_remaining(self):
+        self.canvas.itemconfig(self.remain_tiles, text= str(len(self.game.get_tilesremain())))
     
     def click(self, num, button):
         if not self.discard:
@@ -198,7 +202,6 @@ class MahjongGamePage(tk.Frame):
             self.update_tile_button()
             self.network.onlysend("discard")
             self.network.onlysend(self.game)
-
 
 def main():
     def welcomeToJoin():
@@ -251,6 +254,7 @@ def main():
         update = True
 
         while update:
+            mahjong_game.update_remaining()
             update = False
             n.onlysend("draw")
             game = n.receive_object()
@@ -263,6 +267,8 @@ def main():
                 mahjong_game.update_game(game)
                 mahjong_game.update_tile_button()
             if n.receive_string() == "continue":
+                game = n.send("request")
+                mahjong_game.update_game(game)
                 update = True
 
 
