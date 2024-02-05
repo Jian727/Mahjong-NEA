@@ -102,6 +102,8 @@ class MahjongGamePage(tk.Frame):
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
 
+        self.outside_tiles = []
+
         #get player number
         for i, player in enumerate(self.game.get_players()):
             if player.get_name() == name:
@@ -187,7 +189,17 @@ class MahjongGamePage(tk.Frame):
                 self.buttons.append(button)
 
     def update_remaining(self):
+        if len(self.game.get_tilesoutside()) != 0:
+            discarded = self.game.get_tilesoutside()[-1]
+            num = discarded.get_cal_value()
+            image = Image.open(self.img_path[num])
+            self.outside_tiles.append(ImageTk.PhotoImage(image))
+            index = len(self.outside_tiles)-1
+            if index > 61:
+                index +=3
+            self.canvas.create_image(100+40*(index%18), 100+50*(index//18), anchor=tk.NW, image=self.outside_tiles[-1])
         self.canvas.itemconfig(self.remain_tiles, text= str(len(self.game.get_tilesremain())))
+
     
     def click(self, num, button):
         if not self.discard:
