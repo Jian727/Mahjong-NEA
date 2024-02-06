@@ -34,7 +34,7 @@ def broadcast(data):
             except socket.error:
                 # Handle disconnected client
                 pass
-                
+
 def threaded_client(conn, player):
     global currentPlayerlist
     global game
@@ -75,6 +75,21 @@ def threaded_client(conn, player):
 
                 elif data == "discard":
                     game = pickle.loads(conn.recv(2048*8))
+                    pung = game.check_pung(player)
+                    if pung != None:
+                        print("hi")
+                        count_temp, pungset = pung
+                        broadcast("pung")
+                        broadcast(str(count_temp))
+                        pung_data = conn.recv(2048).decode()
+                        if pung_data == "pung":
+                            #wait for respond
+                            pass
+                        else:
+                            pass
+                    else:
+                        broadcast("no pung")
+
                     round_count +=1
                     round_count = round_count % 4
                     broadcast("continue")

@@ -86,6 +86,26 @@ class Game:
         deck, showed = self.display_tiles(player)
         print(f"deck: {tilesToNum(deck)}, showed: {tilesToNum(showed)}")
 
+    def check_pung(self, player_num):
+        count_temp = player_num + 1
+        for i in range(3): #pung check 
+            count_temp = count_temp % 4
+            player_check = self.get_players()[count_temp]
+            player_deck_check = player_check.get_deck()
+            pungset = player_deck_check.findPung()
+            if pungset != None:
+                return(count_temp, pungset)
+                decision = input(f"Name: {player_check.get_name()} can pung {tilesToNum(pungset)}! do you want to pung? (y/n)")
+                if decision == "y":
+                    player_deck_check.Pung(pungset)
+                    print()
+                    return count_temp
+                else:
+                    print()
+            count_temp += 1
+        return None
+
+
     def round(self, player_num): #need to return next player_num
         #check if can win or not
         #discard

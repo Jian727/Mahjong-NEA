@@ -166,6 +166,14 @@ class MahjongGamePage(tk.Frame):
         self.opp_player.reverse()
         self.right_player.reverse()
 
+    def decide_pung(self):
+        self.pung_decision = None
+        self.skip_button()
+        self.pung_button
+        if self.pung_decision != None:
+            return self.pung_decision
+
+
     def update_tile_button(self):
         deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
 
@@ -200,7 +208,7 @@ class MahjongGamePage(tk.Frame):
             self.canvas.create_image(100+40*(index%18), 100+50*(index//18), anchor=tk.NW, image=self.outside_tiles[-1])
         self.canvas.itemconfig(self.remain_tiles, text= str(len(self.game.get_tilesremain())))
 
-    
+    #normal discard tile
     def click(self, num, button):
         if not self.discard:
             pass
@@ -214,6 +222,25 @@ class MahjongGamePage(tk.Frame):
             self.update_tile_button()
             self.network.onlysend("discard")
             self.network.onlysend(self.game)
+
+    def pung_button(self):
+        button = Button(self, text="Play", font=("calibri", 30), command=self.pung)
+        self.pungbutton = button
+        self.canvas.create_window(windowDims[0]-150, windowDims[1]-80, window=self.pung_button)
+
+    def pung(self):
+        self.pung_decision = True
+        self.skip_button.destroy()
+
+    def skip_button(self):
+        button = Button(self, text="Play", font=("calibri", 30), command=self.skip)
+        self.skipbutton = button
+        self.canvas.create_window(windowDims[0]-100, windowDims[1]-80, window=self.skip_button)
+
+    def skip(self):
+        self.pung_decision = False
+        self.skip_button.destroy()
+
 
 def main():
     def welcomeToJoin():
@@ -278,6 +305,23 @@ def main():
                 player.get_deck().draw_tile()
                 mahjong_game.update_game(game)
                 mahjong_game.update_tile_button()
+
+            pung = n.receive_string()
+            if pung == "pung":
+                print("pung")
+                count_temp = n.receive_string()
+                if player_num == int(count_temp):
+                    n.onlysend("pung")
+                    tile1=n.receive_object()
+                    tile2=n.receive_object()
+                    tile3=n.receive_object()
+                    mahjong_game.decide_pung()
+
+                else:
+                    n.onlysend("not pung")
+            elif pung == "no pung":
+                print("no pung")
+
             if n.receive_string() == "continue":
                 game = n.send("request")
                 mahjong_game.update_game(game)
