@@ -83,6 +83,8 @@ def threaded_client(conn, player):
                         broadcast(str(count_temp))
                         pung_data = conn.recv(2048).decode()
                         if pung_data == "pung":
+                            responce = conn.recv(2048).decode()
+                            print(responce)
                             #wait for respond
                             pass
                         else:

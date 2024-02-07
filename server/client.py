@@ -167,12 +167,17 @@ class MahjongGamePage(tk.Frame):
         self.right_player.reverse()
 
     def decide_pung(self):
+        self.decidebutton =[]
         self.pung_decision = None
-        self.skip_button()
-        self.pung_button
-        if self.pung_decision != None:
-            return self.pung_decision
-
+        button1 = Button(self, text="Pung", font=("calibri", 15), command=self.pung)
+        self.decidebutton.append(button1)
+        self.canvas.create_window(windowDims[0]-250, windowDims[1]-80, window=button1)
+        button2 = Button(self, text="Skip", font=("calibri", 15), command=self.skip)
+        self.decidebutton.append(button2)
+        self.canvas.create_window(windowDims[0]-200, windowDims[1]-80, window=button2)
+        while self.pung_decision == None:
+            if self.pung_decision != None:
+                return self.pung_decision
 
     def update_tile_button(self):
         deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
@@ -223,23 +228,16 @@ class MahjongGamePage(tk.Frame):
             self.network.onlysend("discard")
             self.network.onlysend(self.game)
 
-    def pung_button(self):
-        button = Button(self, text="Play", font=("calibri", 30), command=self.pung)
-        self.pungbutton = button
-        self.canvas.create_window(windowDims[0]-150, windowDims[1]-80, window=self.pung_button)
 
     def pung(self):
         self.pung_decision = True
-        self.skip_button.destroy()
-
-    def skip_button(self):
-        button = Button(self, text="Play", font=("calibri", 30), command=self.skip)
-        self.skipbutton = button
-        self.canvas.create_window(windowDims[0]-100, windowDims[1]-80, window=self.skip_button)
+        for button in self.decidebutton:
+            button.destroy()
 
     def skip(self):
         self.pung_decision = False
-        self.skip_button.destroy()
+        for button in self.decidebutton:
+            button.destroy()
 
 
 def main():
@@ -298,7 +296,7 @@ def main():
             n.onlysend("draw")
             game = n.receive_object()
             round_count = n.receive_string()
-            print(round_count)
+            print(f"next round :{round_count}")
             player_num = mahjong_game.get_player_num()
             if player_num == int(round_count):
                 player = game.get_players()[player_num] 
@@ -312,10 +310,13 @@ def main():
                 count_temp = n.receive_string()
                 if player_num == int(count_temp):
                     n.onlysend("pung")
-                    tile1=n.receive_object()
-                    tile2=n.receive_object()
-                    tile3=n.receive_object()
-                    mahjong_game.decide_pung()
+                    decision = mahjong_game.decide_pung()
+                    print(decision)
+                    if decision == True:
+                        print("yes")
+                    elif  decision == False:
+                        print("no")
+                    n.onlysend("okay")
 
                 else:
                     n.onlysend("not pung")
@@ -335,16 +336,19 @@ def main():
         global name
 
         name = joining_page.name_var.get()
-        n = Network()
-        n.getGame()
-        currentgame = n.send(name)
-        joining_page.destroy()
+        if name == '':
+            print("invalid input")
+        else:
+            n = Network()
+            n.getGame()
+            currentgame = n.send(name)
+            joining_page.destroy()
 
-        room_page = RoomPage(root, currentgame)
-        room_page.pack()
+            room_page = RoomPage(root, currentgame)
+            room_page.pack()
 
-        listen_thread = threading.Thread(target=listen_for_notifications, args=(n, name))
-        listen_thread.start()
+            listen_thread = threading.Thread(target=listen_for_notifications, args=(n, name))
+            listen_thread.start()
 
     def roomToGame():
         global room_page

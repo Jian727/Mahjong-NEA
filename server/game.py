@@ -86,6 +86,7 @@ class Game:
         deck, showed = self.display_tiles(player)
         print(f"deck: {tilesToNum(deck)}, showed: {tilesToNum(showed)}")
 
+    #can't pung first discarded tile
     def check_pung(self, player_num):
         count_temp = player_num + 1
         for i in range(3): #pung check 
