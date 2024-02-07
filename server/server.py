@@ -65,8 +65,9 @@ def threaded_client(conn, player):
                     conn.sendall(pickle.dumps(game))
 
                 elif data == "start":
-                    game.initialize_tiles()
-                    game.initial_deck()
+                    if len(game.get_tilesremain()) == 0:
+                        game.initialize_tiles()
+                        game.initial_deck()
                     conn.sendall(pickle.dumps(game))
 
                 elif data == "draw":
@@ -77,18 +78,22 @@ def threaded_client(conn, player):
                     game = pickle.loads(conn.recv(2048*8))
                     pung = game.check_pung(player)
                     if pung != None:
-                        print("hi")
+                        game.set_wait(True)
                         count_temp, pungset = pung
                         broadcast("pung")
                         broadcast(str(count_temp))
-                        pung_data = conn.recv(2048).decode()
-                        if pung_data == "pung":
-                            responce = conn.recv(2048).decode()
-                            print(responce)
+
+                        if player == count_temp: #pung player
+                            print("waiting response")
+                            response = conn.recv(2048).decode()#receive pung or not
+                            print(f"response: {response}")
+                            game.set_wait(False)
                             #wait for respond
-                            pass
-                        else:
-                            pass
+
+                        else:#not pung player
+                            while game.get_wait():
+                                pass
+
                     else:
                         broadcast("no pung")
 
@@ -112,6 +117,8 @@ currentPlayerlist = [["", Player()], ["", Player()], ["", Player()], ["", Player
 
 game = Game()
 round_count = 0
+
+
 
 while True:
     

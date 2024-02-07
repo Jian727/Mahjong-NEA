@@ -8,7 +8,14 @@ class Game:
         self.tilesremain= [] #represent the avaliable tiles on table 
         self.tilesoutside=[] #represent the tiles discarded on table
         self.players=[]
+        self.wait = False
         self.condition=False
+
+    def get_wait(self):
+        return self.wait
+    
+    def set_wait(self, status):
+        self.wait = status
     
     def get_tilesoutside(self):
         return self.tilesoutside

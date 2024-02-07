@@ -85,13 +85,16 @@ class Deck:
     def findPung(self):
         discarded_tile = self.game.get_tilesoutside()
         if len(discarded_tile) == 0:
+            print("No tile in discarded tile")
             return None
         last_discarded_tile = discarded_tile[-1]
         for pair in combinations(self.deck_tiles, 2):
             temp = list(pair)
             temp.append(last_discarded_tile)
             if checkPung(temp):
+                print("Found pung")
                 return temp
+        print("Can't find pung")
         return None
     
     def findChow(self):

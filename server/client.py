@@ -3,6 +3,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 from network import Network
 import threading
+from functions import *
 
 windowDims = (960, 540)
 
@@ -145,7 +146,6 @@ class MahjongGamePage(tk.Frame):
             button1.image = photo
             self.canvas.create_window(i*40+200, windowDims[1]-40, window=button1)
             self.buttons.append(button1)
-        
 
         #create image for others deck
         back =Image.open(self.img_path[34])
@@ -228,7 +228,6 @@ class MahjongGamePage(tk.Frame):
             self.network.onlysend("discard")
             self.network.onlysend(self.game)
 
-
     def pung(self):
         self.pung_decision = True
         for button in self.decidebutton:
@@ -291,7 +290,6 @@ def main():
         update = True
 
         while update:
-            mahjong_game.update_remaining()
             update = False
             n.onlysend("draw")
             game = n.receive_object()
@@ -303,23 +301,24 @@ def main():
                 player.get_deck().draw_tile()
                 mahjong_game.update_game(game)
                 mahjong_game.update_tile_button()
+            mahjong_game.update_remaining()
 
             pung = n.receive_string()
+            pung_wait = False
             if pung == "pung":
                 print("pung")
                 count_temp = n.receive_string()
+
                 if player_num == int(count_temp):
-                    n.onlysend("pung")
                     decision = mahjong_game.decide_pung()
-                    print(decision)
-                    if decision == True:
-                        print("yes")
-                    elif  decision == False:
-                        print("no")
-                    n.onlysend("okay")
+                    print(f"decision:{decision}")
+                    n.onlysend(str(decision))
+                    pung_wait = True
 
                 else:
-                    n.onlysend("not pung")
+                    while pung_wait != True:
+                        pass 
+                        
             elif pung == "no pung":
                 print("no pung")
 
