@@ -139,6 +139,7 @@ class MahjongGamePage(tk.Frame):
     
     def rotate_image_opp(self, img):
         result =img.rotate(180, expand=True)
+        return result
 
     def create_tiles(self):
         deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
@@ -188,6 +189,46 @@ class MahjongGamePage(tk.Frame):
         while self.pung_decision == None:
             if self.pung_decision != None:
                 return self.pung_decision
+    
+    def decide_chow(self):
+        self.decidebutton =[]
+        self.chow_decision = None
+        button1 = Button(self, text="chow", font=("calibri", 15), command=self.chow)
+        self.decidebutton.append(button1)
+        self.canvas.create_window(windowDims[0]-250, windowDims[1]-80, window=button1)
+        button2 = Button(self, text="Skip", font=("calibri", 15), command=self.skip)
+        self.decidebutton.append(button2)
+        self.canvas.create_window(windowDims[0]-200, windowDims[1]-80, window=button2)
+        while self.chow_decision == None:
+            if self.chow_decision != None:
+                return self.chow_decision
+            
+    def decide_chow_set(self, chowsets):
+        self.decidebutton = []
+        self.chow_set_decision= -1
+        for i, chowset in enumerate(chowsets):
+            chowset = sorted(chowset)
+            
+            image1 = Image.open(self.img_path[chowset[0]])
+            image2 = Image.open(self.img_path[chowset[1]])
+            image3 = Image.open(self.img_path[chowset[2]])
+
+            # Combine images
+            combined_image = Image.new("RGB", (108, 50))
+            combined_image.paste(image1, (0, 0))
+            combined_image.paste(image2, (36, 0))
+            combined_image.paste(image3, (72, 0))
+
+            photo = ImageTk.PhotoImage(combined_image)
+
+            button = Button(self, image = photo, compound="center")
+            button.config(command=lambda n=i: self.chow_set(n))
+            button.image = photo
+            self.decidebutton.append(button)
+            self.canvas.create_window(windowDims[0]-200-108*i, windowDims[1]-80, window=button)
+        while self.chow_set_decision == -1:
+            if self.chow_set_decision != -1:
+                return self.chow_set_decision
 
     def update_tile_button(self):
         deck = self.game.get_players()[self.player_num].get_deck()
@@ -267,7 +308,6 @@ class MahjongGamePage(tk.Frame):
 
             for i, player_shown_deck in enumerate(player_shown_list):
                 shown = shown_list[i]
-                #shown_tile = self.canvas.itemconfig(shown[3*i])["image"]
                 print("check")
                 if len(player_shown_deck) != 0:
                     print("hi")
@@ -278,7 +318,7 @@ class MahjongGamePage(tk.Frame):
                             if i == 2:
                                 photo = ImageTk.PhotoImage(self.rotate_image(image))
                             elif i == 1:
-                                photo = ImageTk.PhotoImage(self.rotate_image.opp(image))
+                                photo = ImageTk.PhotoImage(self.rotate_image_opp(image))
                             else:
                                 photo = ImageTk.PhotoImage(self.rotate_image_rev(image))
                                 
@@ -316,6 +356,16 @@ class MahjongGamePage(tk.Frame):
 
     def pung(self):
         self.pung_decision = True
+        for button in self.decidebutton:
+            button.destroy()
+
+    def chow(self):
+        self.chow_decision = True
+        for button in self.decidebutton:
+            button.destroy()
+
+    def chow_set(self, num):
+        self.chow_set_decision = num
         for button in self.decidebutton:
             button.destroy()
 
@@ -407,7 +457,6 @@ def main():
                     if player_num == int(count_temp):
                         n.onlysend("pung")
                         decision = mahjong_game.decide_pung()
-                        print(f"decision:{decision}")
                         n.onlysend(str(decision))
 
                     while 1:
@@ -426,6 +475,44 @@ def main():
                 elif pung == "no pung":
                     print("no pung")
 
+            if update == False: 
+
+                if player_num == (int(round_count)+1)%4:
+                    n.onlysend("check chow")
+                    chow = n.receive_string()
+                    if chow != "no chow":
+                        print("chow")
+                        num_of_chow = int(chow)
+                        decision = mahjong_game.decide_chow()
+                        n.onlysend(str(decision))
+                        if decision:
+                            if num_of_chow > 1:
+                                chowsets = []
+                                for i in range(num_of_chow):
+                                    chowset = n.receive_string()
+                                    chowset = list(map(int, chowset.split(',')))
+                                    chowsets.append(chowset)
+                                set_decision = mahjong_game.decide_chow_set(chowsets)
+                                n.onlysend(str(set_decision))
+                            update = True
+                        else:
+                            print("no chow")
+                    else:
+                        print("no chow")
+
+                while 1:
+                    data = n.receive_string()
+                    print(f"505: {data}")
+                    if data == "chow done 1":
+                        print("finish chow check 2")
+                        game = n.send("request")
+                        mahjong_game.update_game(game)
+                        mahjong_game.update_tile_button()
+                        mahjong_game.update_remaining()
+                        break
+                    elif data == "chow done 2":
+                        break
+            
             n.onlysend("draw")
             game = n.receive_object()
             round_count = n.receive_string()

@@ -1,34 +1,33 @@
-from client import *
-from game import *
-from player import Player
+import tkinter as tk
+from PIL import Image, ImageTk 
 
-player1 = Player()
-player1.set_name("1")
-player2 = Player()
-player2.set_name("2")
-player3 = Player()
-player3.set_name("3")
-player4 = Player()
-player4.set_name("4")
-
-game = Game()
-
-game.add_players(player1)
-game.add_players(player2)
-game.add_players(player3)
-game.add_players(player4)
-
-game.initialize_tiles()
-game.initial_deck()
-
+# Create the main window
 root = tk.Tk()
-root.title("Mahjong Game")
-n = Network()
+root.geometry("300x200")
 
-mahjong_game = MahjongGamePage(root, game, "1")
-mahjong_game.pack()
+# Load images
+image1 = Image.open("img/0.png")
+image2 = Image.open("img/1.png")
+image3 = Image.open("img/2.png")
 
-run = True
-    
-while run:
-    root.mainloop()
+# Resize images to fit the button (adjust size as needed)
+image1 = image1.resize((36, 50), Image.ANTIALIAS)
+image2 = image2.resize((36, 50), Image.ANTIALIAS)
+image3 = image3.resize((36, 50), Image.ANTIALIAS)
+
+# Combine images
+combined_image = Image.new("RGB", (108, 50))
+combined_image.paste(image1, (0, 0))
+combined_image.paste(image2, (36, 0))
+combined_image.paste(image3, (72, 0))
+
+# Convert combined image to Tkinter PhotoImage
+photo = ImageTk.PhotoImage(combined_image)
+
+# Create button with combined image
+button = tk.Button(root, image=photo, command=lambda: print("Button Clicked"))
+button.image = photo  # Keep a reference to avoid garbage collection
+button.pack()
+
+# Start the Tkinter event loop
+root.mainloop()

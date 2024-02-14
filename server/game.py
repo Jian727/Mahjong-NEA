@@ -98,6 +98,14 @@ class Game:
                 return(count_temp, pungset)
             count_temp += 1
         return None
+    
+    def check_chow(self, player_num):
+        player = self.get_players()[player_num]
+        player_deck = player.get_deck()
+        chowsets = player_deck.findChow()
+        if chowsets != None: #chow check
+            return(chowsets)
+        return None
 
 
     def round(self, player_num): #need to return next player_num
