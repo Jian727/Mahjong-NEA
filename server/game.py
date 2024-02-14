@@ -8,14 +8,7 @@ class Game:
         self.tilesremain= [] #represent the avaliable tiles on table 
         self.tilesoutside=[] #represent the tiles discarded on table
         self.players=[]
-        self.wait = False
         self.condition=False
-
-    def get_wait(self):
-        return self.wait
-    
-    def set_wait(self, status):
-        self.wait = status
     
     def get_tilesoutside(self):
         return self.tilesoutside
@@ -103,13 +96,6 @@ class Game:
             pungset = player_deck_check.findPung()
             if pungset != None:
                 return(count_temp, pungset)
-                decision = input(f"Name: {player_check.get_name()} can pung {tilesToNum(pungset)}! do you want to pung? (y/n)")
-                if decision == "y":
-                    player_deck_check.Pung(pungset)
-                    print()
-                    return count_temp
-                else:
-                    print()
             count_temp += 1
         return None
 

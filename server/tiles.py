@@ -22,8 +22,10 @@ class Tiles:
         return self.cal_value
 
 class Suited(Tiles):
-    pass
+    def __init__(self, type, value):
+        super().__init__(type, value)
 
 class Honor(Tiles):
-    pass
+    def __init__(self, type, value):
+        super().__init__(type, value)
 

@@ -75,31 +75,42 @@ def threaded_client(conn, player):
                     conn.sendall(str.encode(str(round_count)))
 
                 elif data == "discard":
+                    global count_temp
+                    global pungset
+
                     game = pickle.loads(conn.recv(2048*8))
+                    round_count +=1
+                    round_count = round_count % 4
+                    broadcast("pung check")
+                    broadcast(game)
+
                     pung = game.check_pung(player)
                     if pung != None:
-                        game.set_wait(True)
                         count_temp, pungset = pung
-                        broadcast("pung")
                         broadcast(str(count_temp))
 
-                        if player == count_temp: #pung player
-                            print("waiting response")
-                            response = conn.recv(2048).decode()#receive pung or not
-                            print(f"response: {response}")
-                            game.set_wait(False)
-                            #wait for respond
-
-                        else:#not pung player
-                            while game.get_wait():
-                                pass
 
                     else:
                         broadcast("no pung")
 
-                    round_count +=1
-                    round_count = round_count % 4
-                    broadcast("continue")
+                elif data == "pung":
+                   
+                    print("waiting response")
+                    response = conn.recv(2048).decode()#receive pung or not
+                    print(f"response: {response}")
+                    if response == "True":
+                        print('not done')
+                        print(count_temp)
+                        print(pungset)
+                        game.get_players()[count_temp].get_deck().Pung(pungset)
+                        print('done')
+                        round_count = count_temp
+                        broadcast("have pung")
+                    else:
+                        broadcast("didn't have pung")
+                    
+                    
+                    #wait for respond
 
                 else:
                     pass
@@ -108,7 +119,7 @@ def threaded_client(conn, player):
             break
 
 
-    print("lost connection")
+    print(f"lost connection, player: {player}")
     conn.close()
 
 currentPlayer=0

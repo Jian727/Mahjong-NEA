@@ -104,6 +104,9 @@ class MahjongGamePage(tk.Frame):
         self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
 
         self.outside_tiles = []
+        self.outside_tiles_image = []
+        self.showed_tiles_image = []
+        self.others_showed_tiles_image = []
 
         #get player number
         for i, player in enumerate(self.game.get_players()):
@@ -129,6 +132,13 @@ class MahjongGamePage(tk.Frame):
     def rotate_image(self, img):
         result =img.rotate(90, expand=True)
         return result.resize((40, 29),Image.LANCZOS)
+    
+    def rotate_image_rev(self, img):
+        result =img.rotate(270, expand=True)
+        return result.resize((40, 29),Image.LANCZOS)
+    
+    def rotate_image_opp(self, img):
+        result =img.rotate(180, expand=True)
 
     def create_tiles(self):
         deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
@@ -180,40 +190,116 @@ class MahjongGamePage(tk.Frame):
                 return self.pung_decision
 
     def update_tile_button(self):
-        deck = self.game.get_players()[self.player_num].get_deck().get_deck_tiles()
+        deck = self.game.get_players()[self.player_num].get_deck()
+        deck_tiles = deck.get_deck_tiles()
+        showed_tiles = deck.get_showed_tiles()
+        num_of_deck_tiles = len(deck_tiles)
+        num_of_showed_tiles = len(showed_tiles)
 
-        for i, tile in enumerate(deck):
+        if num_of_showed_tiles != 0 and len(self.showed_tiles_image) != num_of_showed_tiles*3:
+            tile1, tile2, tile3 = showed_tiles[-1]
+            three_tiles = [tile1, tile2, tile3]
+            three_tiles = sorted(three_tiles, key=lambda x: x.get_cal_value())
 
-            num = tile.get_cal_value()
-            image = Image.open(self.img_path[num])
-            photo = ImageTk.PhotoImage(image)
+            for i in range(3):
+                self.buttons[0].destroy()
+                self.buttons.pop(0)
+
+            for i, tile in enumerate(three_tiles):
+                num = tile.get_cal_value()
+                image = Image.open(self.img_path[num])
+                photo = ImageTk.PhotoImage(image)
+                self.showed_tiles_image.append(photo)
+                self.canvas.create_image((i+num_of_showed_tiles*3)*40+50, windowDims[1]-60, anchor=tk.NW, image=self.showed_tiles_image[-1])
             
-            if i < 13:
+        #if no new tile
+        elif num_of_deck_tiles %3 == 1:
+
+            for i, tile in enumerate(deck_tiles):
+                num = tile.get_cal_value()
+                image = Image.open(self.img_path[num])
+                photo = ImageTk.PhotoImage(image)
                 button = self.buttons[i]
                 button.config(command= lambda n=num, b=button : self.click(n, b), image=photo)
                 button.image = photo
                 self.buttons[i] = button
-            else:
-                self.discard = True
-                button = Button(self, image=photo, command=lambda n=num, b=button: self.click(n,b), compound="center")
-                button.config(command=lambda n=num, b=button: self.click(n, b))
-                button.image = photo
-                self.canvas.create_window(i*40+200, windowDims[1]-40, window=button)
-                self.buttons.append(button)
+
+        #if drew a new tile
+        else:
+            print("extra tile")
+            for i, tile in enumerate(deck_tiles):
+
+                num = tile.get_cal_value()
+                image = Image.open(self.img_path[num])
+                photo = ImageTk.PhotoImage(image)
+                
+                if i < num_of_deck_tiles-1:
+                    button = self.buttons[i]
+                    button.config(command= lambda n=num, b=button : self.click(n, b), image=photo)
+                    button.image = photo
+                    self.buttons[i] = button
+                else:
+                    self.discard = True
+                    button = Button(self, image=photo, command=lambda n=num, b=button: self.click(n,b), compound="center")
+                    button.config(command=lambda n=num, b=button: self.click(n, b))
+                    button.image = photo
+                    self.canvas.create_window(13*40+200, windowDims[1]-40, window=button)
+                    self.buttons.append(button)
 
     def update_remaining(self):
-        if len(self.game.get_tilesoutside()) != 0:
+        if len(self.game.get_tilesoutside()) < len(self.outside_tiles):
+            self.outside_tiles_image.pop()
+            self.canvas.delete(self.outside_tiles[-1])
+            self.outside_tiles.pop()
+
+            left = (self.player_num +3)%4
+            opp = (self.player_num +2)%4
+            right = (self.player_num +1)%4
+
+            print(f"left: {left}, opp: {opp}, right: {right}")
+
+            left_shown = self.game.get_players()[left].get_deck().get_showed_tiles()
+            opp_shown = self.game.get_players()[opp].get_deck().get_showed_tiles()
+            right_shown = self.game.get_players()[right].get_deck().get_showed_tiles()
+
+            player_shown_list = [left_shown, opp_shown, right_shown]
+            shown_list = [self.left_player, self.opp_player, self.right_player]
+
+            for i, player_shown_deck in enumerate(player_shown_list):
+                shown = shown_list[i]
+                #shown_tile = self.canvas.itemconfig(shown[3*i])["image"]
+                print("check")
+                if len(player_shown_deck) != 0:
+                    print("hi")
+                    for j, tile_set in enumerate(player_shown_deck):
+                        for k, tile in enumerate(tile_set):
+                            num = tile.get_cal_value()
+                            image = Image.open(self.img_path[num])
+                            if i == 2:
+                                photo = ImageTk.PhotoImage(self.rotate_image(image))
+                            elif i == 1:
+                                photo = ImageTk.PhotoImage(self.rotate_image.opp(image))
+                            else:
+                                photo = ImageTk.PhotoImage(self.rotate_image_rev(image))
+                                
+                            self.others_showed_tiles_image.append(photo)
+                            tile_to_change = shown[3*j+k]
+                            self.canvas.itemconfig(tile_to_change, image = self.others_showed_tiles_image[-1])
+
+        elif len(self.game.get_tilesoutside()) != 0:
             discarded = self.game.get_tilesoutside()[-1]
             num = discarded.get_cal_value()
             image = Image.open(self.img_path[num])
-            self.outside_tiles.append(ImageTk.PhotoImage(image))
-            index = len(self.outside_tiles)-1
+            self.outside_tiles_image.append(ImageTk.PhotoImage(image))
+            index = len(self.outside_tiles_image)-1
             if index > 61:
                 index +=3
-            self.canvas.create_image(100+40*(index%18), 100+50*(index//18), anchor=tk.NW, image=self.outside_tiles[-1])
+            self.outside_tiles.append(self.canvas.create_image(100+40*(index%18), 100+50*(index//18), anchor=tk.NW, image=self.outside_tiles_image[-1]))
+        #change the label to show remaining tiles
         self.canvas.itemconfig(self.remain_tiles, text= str(len(self.game.get_tilesremain())))
 
     #normal discard tile
+        
     def click(self, num, button):
         if not self.discard:
             pass
@@ -232,6 +318,8 @@ class MahjongGamePage(tk.Frame):
         self.pung_decision = True
         for button in self.decidebutton:
             button.destroy()
+
+        
 
     def skip(self):
         self.pung_decision = False
@@ -289,43 +377,66 @@ def main():
         global n
         update = True
 
+        n.onlysend("draw")
+        game = n.receive_object()
+        round_count = n.receive_string()
+        print(f"next round :{round_count}")
+        player_num = mahjong_game.get_player_num()
+        if player_num == 0:
+            player = game.get_players()[player_num] 
+            player.get_deck().draw_tile()
+
         while update:
             update = False
+
+            #draw and discard
+            if player_num == int(round_count):
+                mahjong_game.update_game(game) 
+                mahjong_game.update_tile_button() #send discard to server
+            
+            if n.receive_string() == "pung check":
+                game = n.receive_object()
+                mahjong_game.update_game(game)
+                mahjong_game.update_remaining()
+                pung = n.receive_string()
+                
+                if pung != "no pung":
+                    print("pung")
+                    count_temp = pung
+
+                    if player_num == int(count_temp):
+                        n.onlysend("pung")
+                        decision = mahjong_game.decide_pung()
+                        print(f"decision:{decision}")
+                        n.onlysend(str(decision))
+
+                    while 1:
+                        data = n.receive_string()
+                        if data == "have pung":
+                            print("finish pung check")
+                            game = n.send("request")
+                            mahjong_game.update_game(game)
+                            mahjong_game.update_tile_button()
+                            mahjong_game.update_remaining()
+                            update = True
+                            break
+                        elif data == "didn't have pung":
+                            break
+                    
+                elif pung == "no pung":
+                    print("no pung")
+
             n.onlysend("draw")
             game = n.receive_object()
             round_count = n.receive_string()
             print(f"next round :{round_count}")
             player_num = mahjong_game.get_player_num()
-            if player_num == int(round_count):
+
+            if player_num == int(round_count) and update != True:
                 player = game.get_players()[player_num] 
                 player.get_deck().draw_tile()
-                mahjong_game.update_game(game)
-                mahjong_game.update_tile_button()
-            mahjong_game.update_remaining()
-
-            pung = n.receive_string()
-            pung_wait = False
-            if pung == "pung":
-                print("pung")
-                count_temp = n.receive_string()
-
-                if player_num == int(count_temp):
-                    decision = mahjong_game.decide_pung()
-                    print(f"decision:{decision}")
-                    n.onlysend(str(decision))
-                    pung_wait = True
-
-                else:
-                    while pung_wait != True:
-                        pass 
-                        
-            elif pung == "no pung":
-                print("no pung")
-
-            if n.receive_string() == "continue":
-                game = n.send("request")
-                mahjong_game.update_game(game)
-                update = True
+                
+            update = True
 
 
     def joinToRoom():
