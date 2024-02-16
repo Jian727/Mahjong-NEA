@@ -50,7 +50,13 @@ class Deck:
         return attributes
     
     def determine_winning_deck(self): #determine if the deck is a winning_deck
+
         attribute_list = self.tiles_attribute()
+        if len(attribute_list) == 13 and len(self.game.get_tilesremain()) != 0:
+            last_discarded = self.game.get_tilesremain()[-1]
+            temp = [last_discarded.get_type(), last_discarded.get_value(), last_discarded.get_cal_value()]
+            attribute_list.append(temp)
+
         sum_of_tiles = sum(sub_arr[1] for sub_arr in attribute_list if len(sub_arr) > 1)
         pairNum = sum_of_tiles%3
         for sub_arr in attribute_list:

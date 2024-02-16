@@ -183,7 +183,7 @@ class MahjongGamePage(tk.Frame):
         button1 = Button(self, text="Pung", font=("calibri", 15), command=self.pung)
         self.decidebutton.append(button1)
         self.canvas.create_window(windowDims[0]-250, windowDims[1]-80, window=button1)
-        button2 = Button(self, text="Skip", font=("calibri", 15), command=self.skip)
+        button2 = Button(self, text="Skip", font=("calibri", 15), command=self.skip_pung)
         self.decidebutton.append(button2)
         self.canvas.create_window(windowDims[0]-200, windowDims[1]-80, window=button2)
         while self.pung_decision == None:
@@ -196,7 +196,7 @@ class MahjongGamePage(tk.Frame):
         button1 = Button(self, text="chow", font=("calibri", 15), command=self.chow)
         self.decidebutton.append(button1)
         self.canvas.create_window(windowDims[0]-250, windowDims[1]-80, window=button1)
-        button2 = Button(self, text="Skip", font=("calibri", 15), command=self.skip)
+        button2 = Button(self, text="Skip", font=("calibri", 15), command=self.skip_chow)
         self.decidebutton.append(button2)
         self.canvas.create_window(windowDims[0]-200, windowDims[1]-80, window=button2)
         while self.chow_decision == None:
@@ -371,10 +371,59 @@ class MahjongGamePage(tk.Frame):
 
         
 
-    def skip(self):
+    def skip_pung(self):
         self.pung_decision = False
         for button in self.decidebutton:
             button.destroy()
+
+    def skip_chow(self):
+        self.chow_decision = False
+        for button in self.decidebutton:
+            button.destroy()
+
+
+class endingPage(tk.Frame):
+    def __init__(self, master, i, game):
+        super().__init__(master, width=windowDims[0], height=windowDims[1])  # Set background and dimensions
+
+        self.canvas = tk.Canvas(self, width=windowDims[0], height=windowDims[1], highlightthickness=0)
+        self.canvas.pack()
+
+        self.image = Image.open("img/main_background.png")
+        self.image = self.image.resize((windowDims[0], windowDims[1]), Image.Resampling.LANCZOS)
+        self.photo = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(windowDims[0]//2, windowDims[1]//2, image=self.photo)
+
+        self.img_path = []
+        for j in range(36):
+            self.img_path.append("img/{}.png".format(j))
+
+        self.canvas.create_text(windowDims[0]//2,  windowDims[1]//2-100, text="End Game!", font="calibri 60 bold", fill="white")
+        if i == -1:
+            self.canvas.create_text(windowDims[0]//2,  windowDims[1]//2, text="Draw!", font="calibri 40 bold", fill="white")
+        else:
+            player = game.get_players()[i]
+            name = player.get_name()
+            self.canvas.create_text(windowDims[0]//2,  windowDims[1]//2, text= (f"Winner: {name}!"), font="calibri 40 bold", fill="white")
+            deck = player.get_deck_tiles()
+            showed = player.get_showed()
+            for set in showed:
+                deck.append(set[0])
+                deck.append(set[1])
+                deck.append(set[2])
+            self.deck_photos =[]
+            for i, tile in enumerate(deck):
+                num = tile.get_cal_value()
+                image = Image.open(self.img_path[num])
+                photo = ImageTk.PhotoImage(image)
+
+                self.deck_photos.append(photo)
+                self.canvas.create_image(i*40+200, windowDims[1]//2 +100 , anchor=tk.NW, image=self.deck_photos[-1])
+
+
+        self.button_quit = tk.Button(self, text="Quit", font=("calibri", 30), command=quit)
+        self.button_quit.place(x=windowDims[0]//2-75, y=windowDims[1]//2+200, width=150, height=50)
+
 
 
 def main():
@@ -436,8 +485,20 @@ def main():
             player = game.get_players()[player_num] 
             player.get_deck().draw_tile()
 
-        while update:
+        n.onlysend("win check")
+        win = n.receive_string()
+        print(f"win check: {win}")
+        if win == "True":
+            game = n.send("request")
+            for i, player in enumerate(game.get_players()):
+                if player.get_win():
+                    gameToEnd(i, game)
+                    break
+
+        while update and game.get_condition() == False:
             update = False
+            
+
 
             #draw and discard
             if player_num == int(round_count):
@@ -479,6 +540,7 @@ def main():
 
                 if player_num == (int(round_count)+1)%4:
                     n.onlysend("check chow")
+                    print("sent check chow")
                     chow = n.receive_string()
                     if chow != "no chow":
                         print("chow")
@@ -502,7 +564,7 @@ def main():
 
                 while 1:
                     data = n.receive_string()
-                    print(f"505: {data}")
+                    print(f"538: {data}")
                     if data == "chow done 1":
                         print("finish chow check 2")
                         game = n.send("request")
@@ -522,6 +584,20 @@ def main():
             if player_num == int(round_count) and update != True:
                 player = game.get_players()[player_num] 
                 player.get_deck().draw_tile()
+
+            n.onlysend("win check")
+            win = n.receive_string()
+            print(f"win check: {win}")
+            if win == "True":
+                game = n.send("request")
+                winner = False
+                for i, player in enumerate(game.get_players()):
+                    if player.get_win():
+                        winner = True
+                        gameToEnd(i, game)
+                        break
+                if winner == False:
+                    gameToEnd(-1, game)
                 
             update = True
 
@@ -533,7 +609,7 @@ def main():
         global name
 
         name = joining_page.name_var.get()
-        if name == '':
+        if name == '' or len(name) > 15:
             print("invalid input")
         else:
             n = Network()
@@ -561,6 +637,14 @@ def main():
         currentgame = mahjong_game.get_game()
         listen_thread2 =  threading.Thread(target=update_game, args=())
         listen_thread2.start()
+
+    def gameToEnd(i, game):
+        global mahjong_game
+
+        mahjong_game.destroy()
+        ending_page = endingPage(root, i, game)
+        ending_page.pack()
+
 
     def quit():
         root.quit()

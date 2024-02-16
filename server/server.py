@@ -117,7 +117,7 @@ def threaded_client(conn, player):
     
                     response = conn.recv(2048).decode()#receive chow or not
                     if response == "True":
-                        print(f"response = {response}")
+                        print(f"chow response = {response}")
                         if num_of_chow == 1:
                             chowset = chowsets[0]
                             game.get_players()[player].get_deck().Chow(chowset)
@@ -133,10 +133,12 @@ def threaded_client(conn, player):
                     else: 
                         broadcast("chow done 2")
 
+            elif data == "win check":
+                result = game.get_condition()
+                conn.send(str.encode(str(result)))
+
             else:
                 pass
-
-
 
 
     print(f"lost connection, player: {player}")
