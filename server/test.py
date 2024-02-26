@@ -1,33 +1,21 @@
-import tkinter as tk
-from PIL import Image, ImageTk 
+from deck import *
+from tiles import *
+from functions import *
+from game import *
 
-# Create the main window
-root = tk.Tk()
-root.geometry("300x200")
+game = Game()
+game.add_tilesoutside(Tiles(9,0))
+hand = numToTiles([1,1,2,3,5,6,9,15,16,17,27,27])
+deck = Deck(hand, game)
+print(f"input: {hand}")
+print(f"outside: {game.get_tilesoutside()}")
+print()
+print(f"readable input:{tilesToNum(hand)}")
+print(f"readable outside: {tilesToNum(game.get_tilesoutside())}")
 
-# Load images
-image1 = Image.open("img/0.png")
-image2 = Image.open("img/1.png")
-image3 = Image.open("img/2.png")
+print()
 
-# Resize images to fit the button (adjust size as needed)
-image1 = image1.resize((36, 50), Image.ANTIALIAS)
-image2 = image2.resize((36, 50), Image.ANTIALIAS)
-image3 = image3.resize((36, 50), Image.ANTIALIAS)
-
-# Combine images
-combined_image = Image.new("RGB", (108, 50))
-combined_image.paste(image1, (0, 0))
-combined_image.paste(image2, (36, 0))
-combined_image.paste(image3, (72, 0))
-
-# Convert combined image to Tkinter PhotoImage
-photo = ImageTk.PhotoImage(combined_image)
-
-# Create button with combined image
-button = tk.Button(root, image=photo, command=lambda: print("Button Clicked"))
-button.image = photo  # Keep a reference to avoid garbage collection
-button.pack()
-
-# Start the Tkinter event loop
-root.mainloop()
+result = deck.findChow()
+print(f"result: {result}")
+if result != None:
+    print(f"readable result: {tilesToNum(result)}")

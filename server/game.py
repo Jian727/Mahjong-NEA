@@ -9,6 +9,11 @@ class Game:
         self.tilesoutside=[] #represent the tiles discarded on table
         self.players=[]
         self.condition=False
+
+    def set_tilesoutside(self, tile):
+
+        self.tilesoutside.append(tile)
+
     
     def get_tilesoutside(self):
         return self.tilesoutside

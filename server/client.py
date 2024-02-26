@@ -64,7 +64,7 @@ class RoomPage(tk.Frame):
 
         self.labels = [tk.Label(self, text="Waiting",font="calibri 15") for _ in range(4)]
 
-        # Place labels on each side of the window
+        # Place labels on each side of the windowS
         for i, label in enumerate(self.labels):
             if i == 0:
                 label.place(x=windowDims[0]//2-20, y=windowDims[1]-40)
@@ -84,7 +84,6 @@ class RoomPage(tk.Frame):
             self.labels[i].config(text=name)
 
         self.update_idletasks()
-        
         if "waiting" not in names:
             self.status = True
 
@@ -153,7 +152,7 @@ class MahjongGamePage(tk.Frame):
             image = Image.open(self.img_path[num])
             photo = ImageTk.PhotoImage(image)
             button1 = Button(self, image=photo, compound="center")
-            button1.config(command=lambda n=num, b=button1: self.click(n, b))
+            button1.config(command=lambda n=num: self.click(n))
             button1.image = photo
             self.canvas.create_window(i*40+200, windowDims[1]-40, window=button1)
             self.buttons.append(button1)
@@ -261,7 +260,7 @@ class MahjongGamePage(tk.Frame):
                 image = Image.open(self.img_path[num])
                 photo = ImageTk.PhotoImage(image)
                 button = self.buttons[i]
-                button.config(command= lambda n=num, b=button : self.click(n, b), image=photo)
+                button.config(command= lambda n=num : self.click(n), image=photo)
                 button.image = photo
                 self.buttons[i] = button
 
@@ -276,13 +275,13 @@ class MahjongGamePage(tk.Frame):
                 
                 if i < num_of_deck_tiles-1:
                     button = self.buttons[i]
-                    button.config(command= lambda n=num, b=button : self.click(n, b), image=photo)
+                    button.config(command= lambda n=num: self.click(n), image=photo)
                     button.image = photo
                     self.buttons[i] = button
                 else:
                     self.discard = True
-                    button = Button(self, image=photo, command=lambda n=num, b=button: self.click(n,b), compound="center")
-                    button.config(command=lambda n=num, b=button: self.click(n, b))
+                    button = Button(self, image=photo, command=lambda n=num: self.click(n), compound="center")
+                    button.config(command=lambda n=num: self.click(n))
                     button.image = photo
                     self.canvas.create_window(13*40+200, windowDims[1]-40, window=button)
                     self.buttons.append(button)
@@ -340,7 +339,7 @@ class MahjongGamePage(tk.Frame):
 
     #normal discard tile
         
-    def click(self, num, button):
+    def click(self, num):
         if not self.discard:
             pass
         else:
@@ -368,9 +367,7 @@ class MahjongGamePage(tk.Frame):
         self.chow_set_decision = num
         for button in self.decidebutton:
             button.destroy()
-
         
-
     def skip_pung(self):
         self.pung_decision = False
         for button in self.decidebutton:
@@ -428,13 +425,14 @@ class endingPage(tk.Frame):
 
 def main():
     def welcomeToJoin():
-        # Destroy the welcome page and show the game page after connecting
+        # Destroy the welcome page and show the joining page
         global joining_page
         welcome_page.destroy()
         joining_page = joiningPage(root, joinToRoom)
         joining_page.pack()
 
     def getPlayersName(game, myname):
+        #Get players' names from entry boxes
         players = game.get_players()
         names = []
         for player in players:
@@ -601,8 +599,8 @@ def main():
                 
             update = True
 
-
     def joinToRoom():
+        #destroy joining room and create waitng room
         global joining_page
         global n
         global room_page
@@ -645,7 +643,6 @@ def main():
         ending_page = endingPage(root, i, game)
         ending_page.pack()
 
-
     def quit():
         root.quit()
 
@@ -656,12 +653,7 @@ def main():
     welcome_page = WelcomePage(root, welcomeToJoin, quit)
     welcome_page.pack()
 
-
-
-    run = True
-    
-    while run:
-        root.mainloop()
+    root.mainloop()
 
 if __name__ == "__main__":
     main()

@@ -14,7 +14,7 @@ class Deck:
     def get_deck_tiles(self):
 
         n = len(self.deck_tiles)  
-        if n <= 1:
+        if n < 1:
             return None
         for i in range(1, n):  
             temp = self.deck_tiles[i]  
@@ -52,8 +52,8 @@ class Deck:
     def determine_winning_deck(self): #determine if the deck is a winning_deck
 
         attribute_list = self.tiles_attribute()
-        if len(attribute_list) == 13 and len(self.game.get_tilesremain()) != 0:
-            last_discarded = self.game.get_tilesremain()[-1]
+        if len(attribute_list) == 13 and len(self.game.get_tilesoutside()) != 0:
+            last_discarded = self.game.get_tilesoutside()[-1]
             temp = [last_discarded.get_type(), last_discarded.get_value(), last_discarded.get_cal_value()]
             attribute_list.append(temp)
 
